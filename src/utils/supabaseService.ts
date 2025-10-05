@@ -734,6 +734,54 @@ const convertExcelDateToISO = (excelDate: string | number): string => {
   return new Date().toISOString().split('T')[0];
 };
 
+// Fonction pour récupérer les données filtrées depuis Supabase pour l'export
+export const getFilteredDataForExport = async (
+  type: string,
+  dateFrom: string,
+  dateTo: string
+): Promise<any[]> => {
+  try {
+    console.log('🔍 Récupération des données filtrées pour export...');
+    console.log('Filtres:', { type, dateFrom, dateTo });
+
+    let query = supabase
+      .from('rapport')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    // Appliquer le filtre de type si spécifié
+    if (type && type !== 'all') {
+      query = query.eq('type', type);
+    }
+
+    // Appliquer le filtre de date de début
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom);
+    }
+
+    // Appliquer le filtre de date de fin
+    if (dateTo) {
+      // Ajouter un jour pour inclure la date de fin complète
+      const dateToInclusive = new Date(dateTo);
+      dateToInclusive.setDate(dateToInclusive.getDate() + 1);
+      query = query.lt('created_at', dateToInclusive.toISOString().split('T')[0]);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('❌ Erreur lors de la récupération des données filtrées:', error);
+      return [];
+    }
+
+    console.log('✅ Données filtrées récupérées:', data?.length || 0, 'enregistrements');
+    return data || [];
+  } catch (error) {
+    console.error('❌ Erreur générale lors de la récupération des données filtrées:', error);
+    return [];
+  }
+};
+
 export default {
   saveContractToRapport,
   saveAffaireContract,
@@ -753,5 +801,6 @@ export default {
   deleteTermeContract,
   createMonthlyTable,
   insertContractsToTable,
-  searchCreditByContractNumber
+  searchCreditByContractNumber,
+  getFilteredDataForExport
 };

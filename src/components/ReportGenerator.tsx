@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart3, Download, Calendar, DollarSign, FileText, Users, Trash2 } from 'lucide-react';
 import { getContracts, exportToXLSX } from '../utils/storage';
 import { Contract } from '../types';
-import { getAffaireContracts, getRapportContracts, getTermeContracts, deleteRapportContract, deleteAffaireContract, deleteTermeContract } from '../utils/supabaseService';
+import { getAffaireContracts, getRapportContracts, getTermeContracts, deleteRapportContract, deleteAffaireContract, deleteTermeContract, getFilteredDataForExport } from '../utils/supabaseService';
 import { getSessionDate } from '../utils/auth';
 
 const ReportGenerator: React.FC = () => {
@@ -157,25 +157,58 @@ const ReportGenerator: React.FC = () => {
     };
   };
 
-  const exportToExcel = () => {
-    // Convertir les données rapport au format attendu par exportToXLSX
-    const contractsForExport = filteredContracts.map(contract => ({
-      id: contract.id.toString(),
-      type: contract.type,
-      branch: contract.branche,
-      contractNumber: contract.numero_contrat,
-      premiumAmount: contract.prime,
-      insuredName: contract.assure,
-      paymentMode: contract.mode_paiement,
-      paymentType: contract.type_paiement,
-      creditAmount: contract.montant_credit,
-      paymentDate: contract.date_paiement_prevue,
-      createdBy: contract.cree_par,
-      createdAt: new Date(contract.created_at).getTime()
-    }));
+  const exportToExcel = async () => {
+    // Vérifier que les filtres sont remplis
+    if (!filters.type || filters.type === 'all') {
+      alert('Veuillez sélectionner un type avant d\'exporter');
+      return;
+    }
 
-    const filename = `rapport_contrats_${new Date().toISOString().split('T')[0]}.xlsx`;
-    exportToXLSX(contractsForExport, filename);
+    if (!filters.dateFrom) {
+      alert('Veuillez sélectionner une date de début');
+      return;
+    }
+
+    if (!filters.dateTo) {
+      alert('Veuillez sélectionner une date de fin');
+      return;
+    }
+
+    try {
+      // Récupérer les données filtrées directement depuis Supabase
+      const filteredData = await getFilteredDataForExport(
+        filters.type,
+        filters.dateFrom,
+        filters.dateTo
+      );
+
+      if (filteredData.length === 0) {
+        alert('Aucune donnée à exporter avec les filtres sélectionnés');
+        return;
+      }
+
+      // Convertir les données rapport au format attendu par exportToXLSX
+      const contractsForExport = filteredData.map(contract => ({
+        id: contract.id.toString(),
+        type: contract.type,
+        branch: contract.branche,
+        contractNumber: contract.numero_contrat,
+        premiumAmount: contract.prime,
+        insuredName: contract.assure,
+        paymentMode: contract.mode_paiement,
+        paymentType: contract.type_paiement,
+        creditAmount: contract.montant_credit,
+        paymentDate: contract.date_paiement_prevue,
+        createdBy: contract.cree_par,
+        createdAt: new Date(contract.created_at).getTime()
+      }));
+
+      const filename = `rapport_${filters.type}_${filters.dateFrom}_${filters.dateTo}.xlsx`;
+      exportToXLSX(contractsForExport, filename);
+    } catch (error) {
+      console.error('Erreur lors de l\'export:', error);
+      alert('Erreur lors de l\'export des données');
+    }
   };
 
   const handleDeleteRapport = async (id: number, numeroContrat: string) => {
