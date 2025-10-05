@@ -302,6 +302,7 @@ const ReportGenerator: React.FC = () => {
               <option value="all">Tous les types</option>
               <option value="Terme">Terme</option>
               <option value="Affaire">Affaire</option>
+              <option value="Credit">Affaire</option>
             </select>
 
             <select
