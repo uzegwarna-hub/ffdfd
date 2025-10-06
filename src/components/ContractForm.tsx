@@ -210,6 +210,122 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
       console.log('  - contract.creditAmount:', contract.creditAmount);
       console.log('  - Calcul montant comptant:', contract.premiumAmount - (contract.creditAmount || 0));
 
+      // VÉRIFICATIONS DES DOUBLONS AVANT SAUVEGARDE
+      if (contract.type === 'Terme' && xmlSearchResult) {
+        // Vérifier dans la table Terme
+        const existingInTerme = await checkTermeContractExists(
+          contract.contractNumber,
+          xmlSearchResult.maturity
+        );
+
+        if (existingInTerme) {
+          const datePaiement = new Date(existingInTerme.date_paiement).toLocaleDateString('fr-FR');
+          setMessage(`❌ Le terme est déjà payé en date du ${datePaiement}`);
+          setIsLoading(false);
+          setFormData({
+            type: 'Affaire',
+            branch: 'Auto',
+            contractNumber: '',
+            premiumAmount: '',
+            insuredName: '',
+            paymentMode: 'Espece',
+            paymentType: 'Au comptant',
+            creditAmount: '',
+            paymentDate: ''
+          });
+          setXmlSearchResult(null);
+          setIsRetourTechniqueMode(false);
+          setOriginalPremiumAmount('');
+          return;
+        }
+
+        // Vérifier dans la table Rapport
+        const existingInRapport = await checkTermeInRapport(
+          contract.contractNumber,
+          xmlSearchResult.maturity
+        );
+
+        if (existingInRapport) {
+          const datePaiement = new Date(existingInRapport.created_at).toLocaleDateString('fr-FR');
+          setMessage(`❌ Le terme est déjà payé en date du ${datePaiement}`);
+          setIsLoading(false);
+          setFormData({
+            type: 'Affaire',
+            branch: 'Auto',
+            contractNumber: '',
+            premiumAmount: '',
+            insuredName: '',
+            paymentMode: 'Espece',
+            paymentType: 'Au comptant',
+            creditAmount: '',
+            paymentDate: ''
+          });
+          setXmlSearchResult(null);
+          setIsRetourTechniqueMode(false);
+          setOriginalPremiumAmount('');
+          return;
+        }
+      }
+
+      if (contract.type === 'Affaire') {
+        // Obtenir la date de session (date de paiement pour Affaire)
+        const sessionDate = getSessionDate();
+
+        // Vérifier dans la table Affaire
+        const existingInAffaire = await checkAffaireContractExists(
+          contract.contractNumber,
+          sessionDate
+        );
+
+        if (existingInAffaire) {
+          const datePaiement = new Date(existingInAffaire.created_at).toLocaleDateString('fr-FR');
+          setMessage(`❌ Ce contrat est déjà souscrit en date du ${datePaiement}`);
+          setIsLoading(false);
+          setFormData({
+            type: 'Affaire',
+            branch: 'Auto',
+            contractNumber: '',
+            premiumAmount: '',
+            insuredName: '',
+            paymentMode: 'Espece',
+            paymentType: 'Au comptant',
+            creditAmount: '',
+            paymentDate: ''
+          });
+          setXmlSearchResult(null);
+          setIsRetourTechniqueMode(false);
+          setOriginalPremiumAmount('');
+          return;
+        }
+
+        // Vérifier dans la table Rapport
+        const existingInRapport = await checkAffaireInRapport(
+          contract.contractNumber,
+          sessionDate
+        );
+
+        if (existingInRapport) {
+          const datePaiement = new Date(existingInRapport.created_at).toLocaleDateString('fr-FR');
+          setMessage(`❌ Ce contrat est déjà souscrit en date du ${datePaiement}`);
+          setIsLoading(false);
+          setFormData({
+            type: 'Affaire',
+            branch: 'Auto',
+            contractNumber: '',
+            premiumAmount: '',
+            insuredName: '',
+            paymentMode: 'Espece',
+            paymentType: 'Au comptant',
+            creditAmount: '',
+            paymentDate: ''
+          });
+          setXmlSearchResult(null);
+          setIsRetourTechniqueMode(false);
+          setOriginalPremiumAmount('');
+          return;
+        }
+      }
+
       // Sauvegarder localement
       saveContract(contract);
 
@@ -217,10 +333,10 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
       try {
         console.log('💾 Début de la sauvegarde dans la table rapport (CRÉDIT)...');
         const rapportSuccess = await saveContractToRapport(contract);
-        
+
         if (rapportSuccess) {
           let successMessage = '✅ Contrat enregistré avec succès';
-          
+
           // Ajouter les détails pour crédit
           if (contract.paymentType === 'Crédit') {
             const montantComptant = contract.premiumAmount - (contract.creditAmount || 0);
@@ -228,7 +344,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
           } else {
             successMessage += ` - Montant: ${contract.premiumAmount} DT`;
           }
-          
+
           setMessage(successMessage);
         } else {
           setMessage('❌ Erreur lors de la sauvegarde dans la base de données');
@@ -245,32 +361,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
       // SAUVEGARDES SPÉCIFIQUES
       if (contract.type === 'Terme' && xmlSearchResult) {
         try {
-          const existingContract = await checkTermeContractExists(
-            contract.contractNumber,
-            xmlSearchResult.maturity
-          );
-          
-          if (existingContract) {
-            const datePaiement = new Date(existingContract.date_paiement).toLocaleDateString('fr-FR');
-            setMessage(`❌ Cette échéance est déjà payée le ${datePaiement} !!`);
-            setIsLoading(false);
-            setFormData({
-        type: 'Affaire',
-        branch: 'Auto',
-        contractNumber: '',
-        premiumAmount: '',
-        insuredName: '',
-        paymentMode: 'Espece',
-        paymentType: 'Au comptant',
-        creditAmount: '',
-        paymentDate: ''
-      });
-      setXmlSearchResult(null);
-      setIsRetourTechniqueMode(false);
-      setOriginalPremiumAmount('');
-            return;
-          }
-          
           await saveTermeContract(contract);
           setMessage(prev => prev + ' + Terme');
         } catch (termeError) {
@@ -278,7 +368,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
           setMessage(prev => prev + ' (erreur Terme)');
         }
       }
-      
+
       if (contract.type === 'Affaire') {
         try {
           await saveAffaireContract(contract);

@@ -321,10 +321,10 @@ export const getTermeContracts = async (): Promise<any[]> => {
 
 // FONCTIONS DE RECHERCHE ET VÉRIFICATION
 
-// Fonction pour vérifier si un contrat Terme existe déjà
+// Fonction pour vérifier si un contrat Terme existe déjà dans la table Terme
 export const checkTermeContractExists = async (numeroContrat: string, echeance: string): Promise<any | null> => {
   try {
-    console.log('🔍 Vérification existence contrat Terme...');
+    console.log('🔍 Vérification existence contrat Terme dans table Terme...');
 
     const echeanceISO = convertExcelDateToISO(echeance);
 
@@ -344,6 +344,93 @@ export const checkTermeContractExists = async (numeroContrat: string, echeance: 
     return data;
   } catch (error) {
     console.error('❌ Erreur générale vérification Terme:', error);
+    return null;
+  }
+};
+
+// Fonction pour vérifier si un contrat Terme existe déjà dans la table Rapport
+export const checkTermeInRapport = async (numeroContrat: string, echeance: string): Promise<any | null> => {
+  try {
+    console.log('🔍 Vérification existence contrat Terme dans table Rapport...');
+
+    const echeanceISO = convertExcelDateToISO(echeance);
+
+    const { data, error } = await supabase
+      .from('rapport')
+      .select('*')
+      .eq('numero_contrat', numeroContrat)
+      .eq('echeance', echeanceISO)
+      .eq('type', 'Terme')
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ Erreur vérification Terme dans Rapport:', error);
+      return null;
+    }
+
+    console.log(data ? '⚠️ Contrat Terme existe dans Rapport' : '✅ Contrat Terme peut être créé dans Rapport');
+    return data;
+  } catch (error) {
+    console.error('❌ Erreur générale vérification Terme dans Rapport:', error);
+    return null;
+  }
+};
+
+// Fonction pour vérifier si un contrat Affaire existe déjà dans la table Affaire
+export const checkAffaireContractExists = async (numeroContrat: string, datePaiement: string): Promise<any | null> => {
+  try {
+    console.log('🔍 Vérification existence contrat Affaire dans table Affaire...');
+    console.log('  - Numéro:', numeroContrat);
+    console.log('  - Date paiement:', datePaiement);
+
+    // Chercher les contrats créés aujourd'hui avec ce numéro
+    const { data, error } = await supabase
+      .from('affaire')
+      .select('*')
+      .eq('numero_contrat', numeroContrat)
+      .gte('created_at', datePaiement)
+      .lt('created_at', datePaiement + 'T23:59:59')
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ Erreur vérification Affaire:', error);
+      return null;
+    }
+
+    console.log(data ? '⚠️ Contrat Affaire existe déjà' : '✅ Contrat Affaire peut être créé');
+    return data;
+  } catch (error) {
+    console.error('❌ Erreur générale vérification Affaire:', error);
+    return null;
+  }
+};
+
+// Fonction pour vérifier si un contrat Affaire existe déjà dans la table Rapport
+export const checkAffaireInRapport = async (numeroContrat: string, datePaiement: string): Promise<any | null> => {
+  try {
+    console.log('🔍 Vérification existence contrat Affaire dans table Rapport...');
+    console.log('  - Numéro:', numeroContrat);
+    console.log('  - Date paiement:', datePaiement);
+
+    // Chercher les contrats créés aujourd'hui avec ce numéro
+    const { data, error } = await supabase
+      .from('rapport')
+      .select('*')
+      .eq('numero_contrat', numeroContrat)
+      .eq('type', 'Affaire')
+      .gte('created_at', datePaiement)
+      .lt('created_at', datePaiement + 'T23:59:59')
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ Erreur vérification Affaire dans Rapport:', error);
+      return null;
+    }
+
+    console.log(data ? '⚠️ Contrat Affaire existe dans Rapport' : '✅ Contrat Affaire peut être créé dans Rapport');
+    return data;
+  } catch (error) {
+    console.error('❌ Erreur générale vérification Affaire dans Rapport:', error);
     return null;
   }
 };
