@@ -3,7 +3,7 @@ import { Save, FileText, DollarSign, Calendar, Search, CreditCard, User, Hash, B
 import { Contract } from '../types';
 import { saveContract, generateContractId, getXMLContracts } from '../utils/storage';
 import { findContractInXLSX } from '../utils/xlsxParser';
-import { searchContractInTable, getAvailableMonths, saveAffaireContract, saveCreditContract, saveContractToRapport, checkTermeContractExists, saveTermeContract,checkAffaireContractExists} from '../utils/supabaseService';
+import { searchContractInTable, getAvailableMonths, saveAffaireContract, saveCreditContract, saveContractToRapport, checkTermeContractExists, saveTermeContract,checkAffaireContractExists,checkAffaireInRapport} from '../utils/supabaseService';
 import { getSessionDate } from '../utils/auth';
 
 interface ContractFormProps {
