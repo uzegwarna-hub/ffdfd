@@ -254,6 +254,20 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
             const datePaiement = new Date(existingContract.date_paiement).toLocaleDateString('fr-FR');
             setMessage(`❌ Cette échéance est déjà payée le ${datePaiement} !!`);
             setIsLoading(false);
+            setFormData({
+        type: 'Affaire',
+        branch: 'Auto',
+        contractNumber: '',
+        premiumAmount: '',
+        insuredName: '',
+        paymentMode: 'Espece',
+        paymentType: 'Au comptant',
+        creditAmount: '',
+        paymentDate: ''
+      });
+      setXmlSearchResult(null);
+      setIsRetourTechniqueMode(false);
+      setOriginalPremiumAmount('');
             return;
           }
           
