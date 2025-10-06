@@ -88,12 +88,7 @@ const LogoutConfirmation: React.FC<LogoutConfirmationProps> = ({ username, onCon
           </button>
 
           <div className="flex space-x-3">
-            <button
-              onClick={onCancel}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-            >
-              Annuler
-            </button>
+            
             <button
               onClick={handleConfirmLogout}
               disabled={!pdfGenerated}
