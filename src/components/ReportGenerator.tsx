@@ -175,12 +175,24 @@ const ReportGenerator: React.FC = () => {
     }
 
     try {
-      // Récupérer les données filtrées directement depuis Supabase
-      const filteredData = await getFilteredDataForExport(
-        filters.type,
-        filters.dateFrom,
-        filters.dateTo
-      );
+      let filteredData = [];
+
+      // Si le type est "Rapport", exporter directement toutes les données de la table rapport
+      if (filters.type === 'Rapport') {
+        // Récupérer toutes les données de la table rapport dans la plage de dates
+        filteredData = await getFilteredDataForExport(
+          'all', // Tous les types pour obtenir toute la table rapport
+          filters.dateFrom,
+          filters.dateTo
+        );
+      } else {
+        // Récupérer les données filtrées par type spécifique
+        filteredData = await getFilteredDataForExport(
+          filters.type,
+          filters.dateFrom,
+          filters.dateTo
+        );
+      }
 
       if (filteredData.length === 0) {
         alert('Aucune donnée à exporter avec les filtres sélectionnés');
@@ -303,6 +315,7 @@ const ReportGenerator: React.FC = () => {
               <option value="Terme">Terme</option>
               <option value="Affaire">Affaire</option>
               <option value="Credit">Credit</option>
+              <option value="Rapport">Rapport</option>
             </select>
 
             <select
