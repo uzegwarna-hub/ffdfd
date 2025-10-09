@@ -35,7 +35,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         onLogin(username);
       }, 500);
     } else {
-      setError('Nom dutilisateur ou mot de passe incorrect');
+      setError('Nom d utilisateur ou mot de passe incorrect');
       setIsLoading(false);
     }
   };
