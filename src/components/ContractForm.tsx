@@ -655,21 +655,15 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
                     <Calendar className="w-4 h-4 mr-2" />
                     Date de paiement prévue *
                   </label>
-                  {username === 'Hamza' ? (
-                    <input
-                      type="date"
-                      name="paymentDate"
-                      value={formData.paymentDate}
-                      onChange={handleInputChange}
-                      min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      className="w-full p-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white"
-                      required
-                    />
-                  ) : (
-                    <div className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
-                      Date minimum: {new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')}
-                    </div>
-                  )}
+                  <input
+                    type="date"
+                    name="paymentDate"
+                    value={formData.paymentDate}
+                    onChange={handleInputChange}
+                    min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                    className="w-full p-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white"
+                    required
+                  />
                 </div>
               </div>
               
@@ -757,3 +751,4 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
 };
 
 export default ContractForm;
+</boltAction
