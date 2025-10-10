@@ -47,7 +47,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
     client: '',
     montant_ristourne: '',
     date_ristourne: new Date().toISOString().split('T')[0],
-		date_paiement_ristourne:  new Date().toISOString().split('T')[0]
+    date_paiement_ristourne: new Date().toISOString().split('T')[0]
   });
 
   // États pour les sinistres
@@ -56,14 +56,12 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
     numero_sinistre: '',
     montant: '',
     client: '',
-    date_sinistre: new Date().toISOString().split('T')[0]
+    date_sinistre: new Date().toISOString().split('T')[0],
+    date_paiement_sinistre: new Date().toISOString().split('T')[0]
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
-  
-  // Vérifier si l'utilisateur peut modifier les dates
-  const canEditDates = username === 'Hamza';
 
   const sections = [
     { id: 'depenses', label: 'Dépenses', icon: TrendingDown, color: 'red' },
@@ -183,8 +181,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       numero_contrat: newRistourne.numero_contrat,
       client: newRistourne.client,
       montant_ristourne: parseFloat(newRistourne.montant_ristourne),
-			date_paiement_ristourne:  new Date().toISOString().split('T')[0],
-      date_ristourne: newRistourne.date_recette,
+      date_paiement_ristourne: newRistourne.date_paiement_ristourne,
+      date_ristourne: newRistourne.date_ristourne,
       cree_par: username
     };
 
@@ -195,7 +193,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
         numero_contrat: '',
         client: '',
         montant_ristourne: '',
-        date_ristourne: new Date().toISOString().split('T')[0]
+        date_ristourne: new Date().toISOString().split('T')[0],
+        date_paiement_ristourne: new Date().toISOString().split('T')[0]
       });
       loadData();
     } else {
@@ -224,6 +223,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       montant: parseFloat(newSinistre.montant),
       client: newSinistre.client,
       date_sinistre: newSinistre.date_sinistre,
+      date_paiement_sinistre: newSinistre.date_paiement_sinistre,
       cree_par: username
     };
 
@@ -234,7 +234,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
         numero_sinistre: '',
         montant: '',
         client: '',
-        date_sinistre: new Date().toISOString().split('T')[0]
+        date_sinistre: new Date().toISOString().split('T')[0],
+        date_paiement_sinistre: new Date().toISOString().split('T')[0]
       });
       loadData();
     } else {
@@ -281,18 +282,12 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-            {canEditDates ? (
-              <input
-                type="date"
-                value={newDepense.date_depense}
-                onChange={(e) => setNewDepense({...newDepense, date_depense: e.target.value})}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              />
-            ) : (
-              <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600">
-                {new Date().toLocaleDateString('fr-FR')} (Date courante)
-              </div>
-            )}
+            <input
+              type="date"
+              value={newDepense.date_depense}
+              onChange={(e) => setNewDepense({...newDepense, date_depense: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
           </div>
         </div>
         <button
@@ -374,18 +369,12 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-            {canEditDates ? (
-              <input
-                type="date"
-                value={newRecette.date_recette}
-                onChange={(e) => setNewRecette({...newRecette, date_recette: e.target.value})}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            ) : (
-              <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600">
-                {new Date().toLocaleDateString('fr-FR')} (Date courante)
-              </div>
-            )}
+            <input
+              type="date"
+              value={newRecette.date_recette}
+              onChange={(e) => setNewRecette({...newRecette, date_recette: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
           </div>
         </div>
         <button
@@ -474,24 +463,21 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date de ristourne</label>
-            {canEditDates ? (
-              <input
-                type="date"
-                value={newRistourne.date_ristourne}
-                onChange={(e) => setNewRistourne({...newRistourne, date_ristourne: e.target.value})}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            ) : (
-              <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600">
-                {new Date().toLocaleDateString('fr-FR')} (Date courante)
-              </div>
-            )}
+            <input
+              type="date"
+              value={newRistourne.date_ristourne}
+              onChange={(e) => setNewRistourne({...newRistourne, date_ristourne: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600">
-              {new Date().toLocaleDateString('fr-FR')} (Date courante automatique)
-            </div>
+            <input
+              type="date"
+              value={newRistourne.date_paiement_ristourne}
+              onChange={(e) => setNewRistourne({...newRistourne, date_paiement_ristourne: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
           </div>
         </div>
         <button
@@ -513,7 +499,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
                 <th className="px-6 py-3 text-left text-xs font-medium text-purple-600 uppercase tracking-wider">Contrat</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-purple-600 uppercase tracking-wider">Client</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-purple-600 uppercase tracking-wider">Montant (DT)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-purple-600 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-purple-600 uppercase tracking-wider">Date Ristourne</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-purple-600 uppercase tracking-wider">Date Paiement</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-purple-600 uppercase tracking-wider">Créé par</th>
               </tr>
@@ -586,24 +572,21 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date du sinistre</label>
-            {canEditDates ? (
-              <input
-                type="date"
-                value={newSinistre.date_sinistre}
-                onChange={(e) => setNewSinistre({...newSinistre, date_sinistre: e.target.value})}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            ) : (
-              <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600">
-                {new Date().toLocaleDateString('fr-FR')} (Date courante)
-              </div>
-            )}
+            <input
+              type="date"
+              value={newSinistre.date_sinistre}
+              onChange={(e) => setNewSinistre({...newSinistre, date_sinistre: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600">
-              {new Date().toLocaleDateString('fr-FR')} (Date courante automatique)
-            </div>
+            <input
+              type="date"
+              value={newSinistre.date_paiement_sinistre}
+              onChange={(e) => setNewSinistre({...newSinistre, date_paiement_sinistre: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
           </div>
         </div>
         <button
@@ -625,7 +608,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
                 <th className="px-6 py-3 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">N° Sinistre</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">Client</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">Montant (DT)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">Date Sinistre</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">Date Paiement</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">Créé par</th>
               </tr>
