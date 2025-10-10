@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LogIn, User, Lock } from 'lucide-react';
 import { authenticateUser, saveSession, getSession, canReconnect } from '../utils/auth';
 
@@ -11,6 +11,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Nettoyer le cache des champs au chargement du composant
+  useEffect(() => {
+    clearFormCache();
+  }, []);
+
+  const clearFormCache = () => {
+    // Réinitialiser les champs
+    setUsername('');
+    setPassword('');
+    setError('');
+    
+    // Nettoyer le cache du navigateur pour ces champs
+    if (typeof window !== 'undefined') {
+      // Forcer le navigateur à oublier les valeurs autoremplies
+      const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+      inputs.forEach(input => {
+        (input as HTMLInputElement).value = '';
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +61,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     }
   };
 
+  // Fonction pour forcer le nettoyage des champs
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    // S'assurer que le champ est vide au focus
+    if (e.target.value === '' && (e.target.type === 'text' || e.target.type === 'password')) {
+      e.target.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
@@ -64,6 +93,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  onFocus={handleInputFocus}
+                  autoComplete="off"
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-gray-50/50"
                   placeholder="Entrez votre nom d'utilisateur"
                   required
@@ -82,6 +113,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={handleInputFocus}
+                  autoComplete="new-password"
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-gray-50/50"
                   placeholder="Entrez votre mot de passe"
                   required
