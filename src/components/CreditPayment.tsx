@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Search, DollarSign, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
-import { searchCreditByContractNumberAndEcheance, updateCreditPayment } from '../utils/supabaseService';
+import { searchCreditByContractNumber, updateCreditPayment } from '../utils/supabaseService';
 
 const CreditPayment: React.FC = () => {
   const [contractNumber, setContractNumber] = useState('');
-  const [echeance, setEcheance] = useState('');
   const [creditData, setCreditData] = useState<any>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -12,8 +11,8 @@ const CreditPayment: React.FC = () => {
   const [message, setMessage] = useState('');
 
   const handleSearch = async () => {
-    if (!contractNumber.trim() || !echeance) {
-      setMessage('Veuillez saisir un numéro de contrat et une échéance');
+    if (!contractNumber.trim()) {
+      setMessage('Veuillez saisir un numéro de contrat');
       return;
     }
 
@@ -22,7 +21,7 @@ const CreditPayment: React.FC = () => {
     setCreditData(null);
 
     try {
-      const result = await searchCreditByContractNumberAndEcheance(contractNumber, echeance);
+      const result = await searchCreditByContractNumber(contractNumber);
       
       if (result) {
         setCreditData(result);
@@ -32,7 +31,7 @@ const CreditPayment: React.FC = () => {
           setPaymentAmount(result.montant_credit.toString());
         }
       } else {
-        setMessage('Aucun crédit trouvé pour ce numéro de contrat et cette échéance');
+        setMessage('Aucun crédit trouvé pour ce numéro de contrat');
       }
     } catch (error) {
       setMessage('Erreur lors de la recherche du crédit');
@@ -63,7 +62,7 @@ const CreditPayment: React.FC = () => {
       if (success) {
         setMessage('✅ Paiement enregistré avec succès');
         // Recharger les données du crédit
-        const updatedCredit = await searchCreditByContractNumberAndEcheance(contractNumber, echeance);
+        const updatedCredit = await searchCreditByContractNumber(contractNumber);
         if (updatedCredit) {
           setCreditData(updatedCredit);
         }
@@ -87,14 +86,6 @@ const CreditPayment: React.FC = () => {
     return creditData.prime - amount;
   };
 
-  const resetForm = () => {
-    setContractNumber('');
-    setEcheance('');
-    setCreditData(null);
-    setPaymentAmount('');
-    setMessage('');
-  };
-
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -103,11 +94,11 @@ const CreditPayment: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">Paiement de Crédit</h2>
         </div>
 
-        {/* Recherche par numéro de contrat et échéance */}
+        {/* Recherche par numéro de contrat */}
         <div className="bg-gray-50 rounded-lg p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Rechercher un crédit</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
+          <div className="flex space-x-4">
+            <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Numéro de contrat
               </label>
@@ -117,24 +108,14 @@ const CreditPayment: React.FC = () => {
                 onChange={(e) => setContractNumber(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Saisissez le numéro de contrat"
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Échéance
-              </label>
-              <input
-                type="date"
-                value={echeance}
-                onChange={(e) => setEcheance(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex items-end space-x-2">
+            <div className="flex items-end">
               <button
                 onClick={handleSearch}
                 disabled={isSearching}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center space-x-2"
               >
                 {isSearching ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -143,14 +124,6 @@ const CreditPayment: React.FC = () => {
                 )}
                 <span>{isSearching ? 'Recherche...' : 'Rechercher'}</span>
               </button>
-              {creditData && (
-                <button
-                  onClick={resetForm}
-                  className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200"
-                >
-                  Nouveau
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -181,10 +154,6 @@ const CreditPayment: React.FC = () => {
                 <p className="text-blue-900 font-semibold">{creditData.numero_contrat}</p>
               </div>
               <div>
-                <span className="text-sm font-medium text-blue-700">Échéance:</span>
-                <p className="text-blue-900 font-semibold">{new Date(creditData.echeance).toLocaleDateString('fr-FR')}</p>
-              </div>
-              <div>
                 <span className="text-sm font-medium text-blue-700">Assuré:</span>
                 <p className="text-blue-900">{creditData.assure}</p>
               </div>
@@ -194,11 +163,11 @@ const CreditPayment: React.FC = () => {
               </div>
               <div>
                 <span className="text-sm font-medium text-blue-700">Prime (DT):</span>
-                <p className="text-blue-900 font-semibold">{creditData.prime?.toLocaleString('fr-FR')}</p>
+                <p className="text-blue-900 font-semibold">{creditData.prime.toLocaleString('fr-FR')}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-blue-700">Montant crédit (DT):</span>
-                <p className="text-blue-900 font-semibold">{creditData.montant_credit?.toLocaleString('fr-FR')}</p>
+                <p className="text-blue-900 font-semibold">{creditData.montant_credit.toLocaleString('fr-FR')}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-blue-700">Paiement actuel (DT):</span>
@@ -244,13 +213,9 @@ const CreditPayment: React.FC = () => {
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   step="0.01"
                   min="0"
-                  max={creditData.solde || creditData.montant_credit}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="0.00"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Solde maximum: {(creditData.solde || creditData.montant_credit)?.toLocaleString('fr-FR')} DT
-                </p>
               </div>
               
               {paymentAmount && (
@@ -289,5 +254,3 @@ const CreditPayment: React.FC = () => {
     </div>
   );
 };
-
-export default CreditPayment;
