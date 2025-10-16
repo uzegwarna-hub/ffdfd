@@ -53,7 +53,7 @@ const TermeSearch: React.FC = () => {
         .from('liste_credits')
         .select('*')
         .eq('numero_contrat', result.numero_contrat)
-        .order('date_paiement_effective', { ascending: true });
+        .order('date_paiement_effectif', { ascending: true });
 
       if (error) {
         setError(`Erreur lors du chargement des crédits: ${error.message}`);
@@ -183,7 +183,7 @@ const TermeSearch: React.FC = () => {
                             Statut
                           </th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                            Date Paiement Effective
+                            Date Paiement Effectif
                           </th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                             Paiement
@@ -208,7 +208,7 @@ const TermeSearch: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900">
-                              {formatDate(credit.date_paiement_effective)}
+                              {formatDate(credit.date_paiement_effectif)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 font-medium">
                               {formatCurrency(credit.paiement)}
