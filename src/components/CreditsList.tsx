@@ -16,6 +16,7 @@ const CreditsList: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'mois' | 'tous'>('mois');
+  const [activeFilter, setActiveFilter] = useState<'none' | 'echeances' | 'retard'>('none');
   
   // Récupérer l'utilisateur connecté depuis la session
   const [currentUser, setCurrentUser] = useState<string | null>(null);
@@ -32,7 +33,7 @@ const CreditsList: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [filters, credits, viewMode]);
+  }, [filters, credits, viewMode, activeFilter]);
 
   const loadCredits = async () => {
     try {
@@ -106,23 +107,31 @@ const CreditsList: React.FC = () => {
       ? getCreditsByMonth(filters.mois)
       : credits;
 
-    filtered = filtered.filter(credit => {
-      const creditDate = credit.date_credit ? new Date(credit.date_credit) : new Date();
-      const fromDate = filters.dateFrom ? new Date(filters.dateFrom) : new Date('1900-01-01');
-      const toDate = filters.dateTo ? new Date(filters.dateTo) : new Date('2100-12-31');
-      
-      // Gérer les dates pour la comparaison
-      fromDate.setHours(0, 0, 0, 0);
-      toDate.setHours(23, 59, 59, 999);
-      creditDate.setHours(0, 0, 0, 0);
-      
-      return (
-        (filters.statut === 'all' || credit.statut === filters.statut) &&
-        (filters.branche === 'all' || credit.branche === filters.branche) &&
-        (filters.createdBy === 'all' || credit.cree_par === filters.createdBy) &&
-        creditDate >= fromDate && creditDate <= toDate
-      );
-    });
+    // Appliquer les filtres spéciaux selon activeFilter
+    if (activeFilter === 'echeances') {
+      filtered = getCreditsDueIn7Days();
+    } else if (activeFilter === 'retard') {
+      filtered = getOverdueCredits();
+    } else {
+      // Appliquer les filtres normaux
+      filtered = filtered.filter(credit => {
+        const creditDate = credit.date_credit ? new Date(credit.date_credit) : new Date();
+        const fromDate = filters.dateFrom ? new Date(filters.dateFrom) : new Date('1900-01-01');
+        const toDate = filters.dateTo ? new Date(filters.dateTo) : new Date('2100-12-31');
+        
+        // Gérer les dates pour la comparaison
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
+        creditDate.setHours(0, 0, 0, 0);
+        
+        return (
+          (filters.statut === 'all' || credit.statut === filters.statut) &&
+          (filters.branche === 'all' || credit.branche === filters.branche) &&
+          (filters.createdBy === 'all' || credit.cree_par === filters.createdBy) &&
+          creditDate >= fromDate && creditDate <= toDate
+        );
+      });
+    }
     
     setFilteredCredits(filtered);
   };
@@ -133,6 +142,8 @@ const CreditsList: React.FC = () => {
       ...prev,
       [name]: value
     }));
+    // Réinitialiser le filtre actif quand on change les filtres manuels
+    setActiveFilter('none');
   };
 
   const handleStatusUpdate = async (id: number, newStatus: string) => {
@@ -152,6 +163,52 @@ const CreditsList: React.FC = () => {
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error);
     }
+  };
+
+  const showDueIn7Days = () => {
+    setActiveFilter('echeances');
+    setViewMode('tous');
+    setFilters(prev => ({ 
+      ...prev, 
+      statut: 'all',
+      branche: 'all',
+      createdBy: 'all',
+      dateFrom: '',
+      dateTo: ''
+    }));
+    // Scroll vers le tableau
+    setTimeout(() => {
+      document.getElementById('credits-table')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const showOverdueCredits = () => {
+    setActiveFilter('retard');
+    setViewMode('tous');
+    setFilters(prev => ({ 
+      ...prev, 
+      statut: 'all',
+      branche: 'all',
+      createdBy: 'all',
+      dateFrom: '',
+      dateTo: ''
+    }));
+    // Scroll vers le tableau
+    setTimeout(() => {
+      document.getElementById('credits-table')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const clearFilters = () => {
+    setActiveFilter('none');
+    setFilters({
+      statut: 'all',
+      branche: 'all',
+      createdBy: 'all',
+      dateFrom: '',
+      dateTo: '',
+      mois: new Date().toISOString().slice(0, 7)
+    });
   };
 
   const calculateDetailedStats = () => {
@@ -216,22 +273,9 @@ const CreditsList: React.FC = () => {
     }
   };
 
-  const showDueIn7Days = () => {
-    setFilters(prev => ({ ...prev, statut: 'all' }));
-    setViewMode('tous');
-    // Scroll vers la section des échéances
-    setTimeout(() => {
-      document.getElementById('due-in-7-days')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  const showOverdueCredits = () => {
-    setFilters(prev => ({ ...prev, statut: 'En retard' }));
-    setViewMode('tous');
-  };
-
   const handleViewModeChange = (mode: 'mois' | 'tous') => {
     setViewMode(mode);
+    setActiveFilter('none'); // Réinitialiser le filtre actif quand on change de mode
     // Réinitialiser certains filtres quand on change de mode
     if (mode === 'tous') {
       setFilters(prev => ({
@@ -272,14 +316,28 @@ const CreditsList: React.FC = () => {
           <div className="flex items-center space-x-3">
             <CreditCard className="w-6 h-6 text-blue-600" />
             <h2 className="text-2xl font-bold text-gray-900">
-              {viewMode === 'mois' 
+              {activeFilter === 'echeances' 
+                ? 'Échéances dans 7 jours' 
+                : activeFilter === 'retard' 
+                ? 'Crédits en Retard' 
+                : viewMode === 'mois' 
                 ? `Crédits du ${getMonthName(filters.mois)}` 
                 : 'Tous les Crédits'}
             </h2>
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-              {viewMode === 'mois' 
-                ? `${stats.totalCredits} crédits ce mois` 
-                : `${credits.length} crédits au total`}
+            <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+              activeFilter === 'echeances' 
+                ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                : activeFilter === 'retard'
+                ? 'bg-red-100 text-red-800 border border-red-300'
+                : 'bg-blue-100 text-blue-800 border border-blue-300'
+            }`}>
+              {activeFilter === 'echeances' 
+                ? `${filteredCredits.length} échéances` 
+                : activeFilter === 'retard'
+                ? `${filteredCredits.length} en retard`
+                : viewMode === 'mois' 
+                ? `${filteredCredits.length} crédits ce mois` 
+                : `${filteredCredits.length} crédits au total`}
             </span>
           </div>
           
@@ -296,7 +354,7 @@ const CreditsList: React.FC = () => {
               <button
                 onClick={() => handleViewModeChange('mois')}
                 className={`px-4 py-2 rounded-lg transition-colors ${
-                  viewMode === 'mois'
+                  viewMode === 'mois' && activeFilter === 'none'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
@@ -306,13 +364,21 @@ const CreditsList: React.FC = () => {
               <button
                 onClick={() => handleViewModeChange('tous')}
                 className={`px-4 py-2 rounded-lg transition-colors ${
-                  viewMode === 'tous'
+                  viewMode === 'tous' && activeFilter === 'none'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
                 Tous les Crédits
               </button>
+              {(activeFilter === 'echeances' || activeFilter === 'retard') && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Effacer Filtres
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -379,7 +445,11 @@ const CreditsList: React.FC = () => {
           </div>
 
           <div 
-            className="bg-purple-50 rounded-lg p-4 cursor-pointer hover:bg-purple-100 transition-colors"
+            className={`rounded-lg p-4 cursor-pointer transition-colors ${
+              activeFilter === 'echeances' 
+                ? 'bg-yellow-100 border-2 border-yellow-400' 
+                : 'bg-purple-50 hover:bg-purple-100'
+            }`}
             onClick={showDueIn7Days}
           >
             <div className="flex items-center justify-between">
@@ -422,7 +492,11 @@ const CreditsList: React.FC = () => {
           </div>
 
           <div 
-            className="bg-red-50 rounded-lg p-4 cursor-pointer hover:bg-red-100 transition-colors"
+            className={`rounded-lg p-4 cursor-pointer transition-colors ${
+              activeFilter === 'retard' 
+                ? 'bg-red-100 border-2 border-red-400' 
+                : 'bg-red-50 hover:bg-red-100'
+            }`}
             onClick={showOverdueCredits}
           >
             <div className="flex items-center justify-between">
@@ -436,130 +510,122 @@ const CreditsList: React.FC = () => {
           </div>
         </div>
 
-        {/* Filtres */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <Filter className="w-5 h-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Filtres</h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {viewMode === 'mois' && (
+        {/* Filtres (masqués quand un filtre spécial est actif) */}
+        {activeFilter === 'none' && (
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <Filter className="w-5 h-5 text-gray-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Filtres</h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+              {viewMode === 'mois' && (
+                <select
+                  name="mois"
+                  value={filters.mois}
+                  onChange={handleFilterChange}
+                  className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {uniqueMonths.map(month => (
+                    <option key={month} value={month}>
+                      {getMonthName(month)}
+                    </option>
+                  ))}
+                </select>
+              )}
+
               <select
-                name="mois"
-                value={filters.mois}
+                name="statut"
+                value={filters.statut}
                 onChange={handleFilterChange}
                 className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {uniqueMonths.map(month => (
-                  <option key={month} value={month}>
-                    {getMonthName(month)}
-                  </option>
+                <option value="all">Tous les statuts</option>
+                <option value="Non payé">Non payé</option>
+                <option value="Payé">Payé</option>
+                <option value="En retard">En retard</option>
+              </select>
+
+              <select
+                name="branche"
+                value={filters.branche}
+                onChange={handleFilterChange}
+                className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">Toutes les branches</option>
+                <option value="Auto">Auto</option>
+                <option value="Vie">Vie</option>
+                <option value="Santé">Santé</option>
+                <option value="IRDS">IRDS</option>
+              </select>
+
+              <select
+                name="createdBy"
+                value={filters.createdBy}
+                onChange={handleFilterChange}
+                className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">Tous les utilisateurs</option>
+                {uniqueUsers.map(user => (
+                  <option key={user} value={user}>{user}</option>
                 ))}
               </select>
-            )}
 
-            <select
-              name="statut"
-              value={filters.statut}
-              onChange={handleFilterChange}
-              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Tous les statuts</option>
-              <option value="Non payé">Non payé</option>
-              <option value="Payé">Payé</option>
-              <option value="En retard">En retard</option>
-            </select>
+              <input
+                type="date"
+                name="dateFrom"
+                value={filters.dateFrom}
+                onChange={handleFilterChange}
+                className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Date début"
+              />
 
-            <select
-              name="branche"
-              value={filters.branche}
-              onChange={handleFilterChange}
-              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Toutes les branches</option>
-              <option value="Auto">Auto</option>
-              <option value="Vie">Vie</option>
-              <option value="Santé">Santé</option>
-              <option value="IRDS">IRDS</option>
-            </select>
-
-            <select
-              name="createdBy"
-              value={filters.createdBy}
-              onChange={handleFilterChange}
-              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Tous les utilisateurs</option>
-              {uniqueUsers.map(user => (
-                <option key={user} value={user}>{user}</option>
-              ))}
-            </select>
-
-            <input
-              type="date"
-              name="dateFrom"
-              value={filters.dateFrom}
-              onChange={handleFilterChange}
-              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Date début"
-            />
-
-            <input
-              type="date"
-              name="dateTo"
-              value={filters.dateTo}
-              onChange={handleFilterChange}
-              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Date fin"
-            />
-          </div>
-        </div>
-
-        {/* Section Échéances dans 7 jours */}
-        {getCreditsDueIn7Days().length > 0 && (
-          <div id="due-in-7-days" className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center space-x-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              <h3 className="text-lg font-semibold text-yellow-900">
-                Échéances dans les 7 prochains jours (basé sur la date de paiement prévue)
-              </h3>
+              <input
+                type="date"
+                name="dateTo"
+                value={filters.dateTo}
+                onChange={handleFilterChange}
+                className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Date fin"
+              />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              {getCreditsDueIn7Days().slice(0, 3).map(credit => (
-                <div key={credit.id} className="bg-white rounded-lg p-3 border border-yellow-300">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-semibold text-gray-900">{credit.assure}</p>
-                      <p className="text-gray-600">{credit.numero_contrat}</p>
-                      <p className="text-yellow-700">
-                        Échéance: {credit.date_paiement_prevue ? new Date(credit.date_paiement_prevue).toLocaleDateString('fr-FR') : 'Non définie'}
-                      </p>
-                      <p className="text-gray-500 text-xs">
-                        Date crédit: {credit.date_credit ? new Date(credit.date_credit).toLocaleDateString('fr-FR') : 'Non définie'}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-bold text-yellow-800 block">{(credit.montant_credit || 0).toLocaleString('fr-FR')} DT</span>
-                      <span className={`text-xs font-semibold ${getStatusColor(credit.statut)} px-2 py-1 rounded-full`}>
-                        {credit.statut}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {getCreditsDueIn7Days().length > 3 && (
-                <div className="bg-white rounded-lg p-3 border border-yellow-300 flex items-center justify-center">
-                  <p className="text-yellow-700 font-semibold">
-                    + {getCreditsDueIn7Days().length - 3} autres échéances
-                  </p>
-                </div>
-              )}
+          </div>
+        )}
+
+        {/* Indicateur de filtre actif */}
+        {(activeFilter === 'echeances' || activeFilter === 'retard') && (
+          <div className={`rounded-lg p-4 mb-6 ${
+            activeFilter === 'echeances' ? 'bg-yellow-50 border border-yellow-200' : 'bg-red-50 border border-red-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {activeFilter === 'echeances' ? (
+                  <>
+                    <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                    <p className="text-yellow-700 font-medium">
+                      Affichage des crédits avec échéance dans les 7 prochains jours
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-5 h-5 text-red-600" />
+                    <p className="text-red-700 font-medium">
+                      Affichage des crédits en retard de paiement
+                    </p>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={clearFilters}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+              >
+                Effacer le filtre
+              </button>
             </div>
           </div>
         )}
 
         {/* Liste des crédits */}
-        <div className="overflow-x-auto">
+        <div id="credits-table" className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -685,7 +751,11 @@ const CreditsList: React.FC = () => {
           
           {filteredCredits.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              Aucun crédit trouvé avec les filtres sélectionnés
+              {activeFilter === 'echeances' 
+                ? 'Aucun crédit avec échéance dans les 7 prochains jours' 
+                : activeFilter === 'retard'
+                ? 'Aucun crédit en retard'
+                : 'Aucun crédit trouvé avec les filtres sélectionnés'}
             </div>
           )}
         </div>
