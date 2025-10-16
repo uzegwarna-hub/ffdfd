@@ -91,7 +91,7 @@ const TermeSearch: React.FC = () => {
               <p><strong>Assuré:</strong> {result.assure}</p>
               <p><strong>Prime:</strong> {result.prime}</p>
               <p><strong>Montant Crédit:</strong> {result.montant_credit || 'N/A'}</p>
-              <p><strong>Solde:</strong> {result.montant}</p>
+              <p><strong>Montant payé:</strong> {result.montant}</p>
               <p><strong>Utilisateur:</strong> {result.cree_par}</p>
             </div>
             <div>
