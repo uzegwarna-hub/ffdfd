@@ -911,5 +911,6 @@ export default {
   createMonthlyTable,
   insertContractsToTable,
   searchCreditByContractNumber,
+  searchCreditByContractNumberAndEcheance,
   getFilteredDataForExport
 };
