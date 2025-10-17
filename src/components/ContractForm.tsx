@@ -29,9 +29,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [isRetourTechniqueMode, setIsRetourTechniqueMode] = useState(false);
-  const [isRetourContentieuxMode, setIsRetourContentieuxMode] = useState(false);
   const [originalPremiumAmount, setOriginalPremiumAmount] = useState('');
-  const [retourType, setRetourType] = useState<'Technique' | 'Contentieux' | null>(null);
 
   React.useEffect(() => {
     loadAvailableMonths();
@@ -126,23 +124,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
   const handleRetourTechniqueClick = () => {
     if (!isRetourTechniqueMode) {
       setOriginalPremiumAmount(formData.premiumAmount);
-      setRetourType('Technique');
-      setIsRetourContentieuxMode(false);
-    } else {
-      setRetourType(null);
     }
     setIsRetourTechniqueMode(!isRetourTechniqueMode);
-  };
-
-  const handleRetourContentieuxClick = () => {
-    if (!isRetourContentieuxMode) {
-      setOriginalPremiumAmount(formData.premiumAmount);
-      setRetourType('Contentieux');
-      setIsRetourTechniqueMode(false);
-    } else {
-      setRetourType(null);
-    }
-    setIsRetourContentieuxMode(!isRetourContentieuxMode);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -252,9 +235,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
           });
           setXmlSearchResult(null);
           setIsRetourTechniqueMode(false);
-          setIsRetourContentieuxMode(false);
           setOriginalPremiumAmount('');
-          setRetourType(null);
           return;
         }
 
@@ -281,9 +262,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
           });
           setXmlSearchResult(null);
           setIsRetourTechniqueMode(false);
-          setIsRetourContentieuxMode(false);
           setOriginalPremiumAmount('');
-          setRetourType(null);
           return;
         }
       }
@@ -315,9 +294,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
           });
           setXmlSearchResult(null);
           setIsRetourTechniqueMode(false);
-          setIsRetourContentieuxMode(false);
           setOriginalPremiumAmount('');
-          setRetourType(null);
           return;
         }
 
@@ -344,9 +321,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
           });
           setXmlSearchResult(null);
           setIsRetourTechniqueMode(false);
-          setIsRetourContentieuxMode(false);
           setOriginalPremiumAmount('');
-          setRetourType(null);
           return;
         }
       }
@@ -357,7 +332,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
       // SAUVEGARDE DANS RAPPORT (AVEC LOGIQUE CRÉDIT)
       try {
         console.log('💾 Début de la sauvegarde dans la table rapport (CRÉDIT)...');
-        const rapportSuccess = await saveContractToRapport(contract, retourType, parseFloat(originalPremiumAmount) || undefined);
+        const rapportSuccess = await saveContractToRapport(contract);
 
         if (rapportSuccess) {
           let successMessage = '✅ Contrat enregistré avec succès';
@@ -386,7 +361,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
       // SAUVEGARDES SPÉCIFIQUES
       if (contract.type === 'Terme' && xmlSearchResult) {
         try {
-          await saveTermeContract(contract, retourType, parseFloat(originalPremiumAmount) || undefined);
+          await saveTermeContract(contract);
           setMessage(prev => prev + ' + Terme');
         } catch (termeError) {
           console.error('Erreur Terme:', termeError);
@@ -429,9 +404,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
       });
       setXmlSearchResult(null);
       setIsRetourTechniqueMode(false);
-      setIsRetourContentieuxMode(false);
       setOriginalPremiumAmount('');
-      setRetourType(null);
 
     } catch (error) {
       console.error('Erreur générale:', error);
@@ -576,9 +549,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
                 {formData.paymentType === 'Crédit' && (
                   <span className="text-xs text-orange-600 ml-2">(Prime totale)</span>
                 )}
-                {formData.type === 'Terme' && originalPremiumAmount && retourType && (
+                {formData.type === 'Terme' && originalPremiumAmount && (
                   <span className="text-xs text-red-600 ml-2">
-                    (Original: {originalPremiumAmount} DT - Retour {retourType})
+                    (Original: {originalPremiumAmount} DT)
                   </span>
                 )}
               </label>
@@ -589,10 +562,10 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
                 onChange={handleInputChange}
                 step="0.01"
                 min="0"
-                className={`w-full p-3 border ${isRetourTechniqueMode || isRetourContentieuxMode ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white`}
+                className={`w-full p-3 border ${isRetourTechniqueMode ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white`}
                 placeholder="0.00"
                 required
-                disabled={formData.type === 'Terme' && !isRetourTechniqueMode && !isRetourContentieuxMode}
+                disabled={formData.type === 'Terme' && !isRetourTechniqueMode}
               />
             </div>
 
@@ -722,26 +695,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ username }) => {
             </div>
           )}
 
-          {/* Boutons Retour (conditionnels) */}
+          {/* Bouton Retour Technique (conditionnel) */}
           {formData.type === 'Terme' && (
-            <div className="flex justify-start space-x-4">
+            <div className="flex justify-start">
               <button
                 type="button"
                 onClick={handleRetourTechniqueClick}
                 className={`px-4 py-2 bg-gradient-to-r ${isRetourTechniqueMode ? 'from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' : 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'} text-white rounded-lg transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg`}
-                disabled={isRetourContentieuxMode}
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>{isRetourTechniqueMode ? 'Annuler Modification' : 'Retour Technique'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleRetourContentieuxClick}
-                className={`px-4 py-2 bg-gradient-to-r ${isRetourContentieuxMode ? 'from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' : 'from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800'} text-white rounded-lg transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg`}
-                disabled={isRetourTechniqueMode}
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>{isRetourContentieuxMode ? 'Annuler Modification' : 'Retour Contentieux'}</span>
               </button>
             </div>
           )}

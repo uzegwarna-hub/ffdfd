@@ -1,11 +1,7 @@
 import { supabase } from '../lib/supabase';
 
 // Fonction pour sauvegarder un contrat dans la table rapport (AVEC NOUVELLE LOGIQUE)
-export const saveContractToRapport = async (
-  contractData: any,
-  retourType?: 'Technique' | 'Contentieux' | null,
-  primeAvantRetour?: number
-): Promise<boolean> => {
+export const saveContractToRapport = async (contractData: any): Promise<boolean> => {
   try {
     console.log('📊 Sauvegarde du contrat dans la table rapport...');
     console.log('🔍 Données reçues:');
@@ -195,11 +191,7 @@ export const saveCreditContract = async (contractData: any): Promise<boolean> =>
 };
 
 // Fonction pour sauvegarder un contrat Terme
-export const saveTermeContract = async (
-  contractData: any,
-  retourType?: 'Technique' | 'Contentieux' | null,
-  primeAvantRetour?: number
-): Promise<boolean> => {
+export const saveTermeContract = async (contractData: any): Promise<boolean> => {
   try {
     console.log('📝 Sauvegarde du contrat Terme...');
 
@@ -218,8 +210,7 @@ export const saveTermeContract = async (
       branche: contractData.branch || '',
       echeance: echeanceISO,
       date_paiement: new Date().toISOString().split('T')[0],
-      retour: retourType || null,
-      prime_avant_retour: primeAvantRetour || null
+      cree_par: contractData.createdBy || 'Système'
     };
 
     const { data, error } = await supabase
