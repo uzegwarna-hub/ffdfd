@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Gift, AlertTriangle, Save, Plus, Trash2 } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Gift, AlertTriangle, Save, Plus, Trash2, Lock } from 'lucide-react';
 import { 
   saveDepense, 
   getDepenses, 
@@ -24,12 +24,15 @@ interface FinancialManagementProps {
 const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) => {
   const [activeSection, setActiveSection] = useState<'depenses' | 'recettes' | 'ristournes' | 'sinistres'>('depenses');
   
+  // Fonction pour obtenir la date courante au format YYYY-MM-DD
+  const getCurrentDate = () => new Date().toISOString().split('T')[0];
+  
   // États pour les dépenses
   const [depenses, setDepenses] = useState<Depense[]>([]);
   const [newDepense, setNewDepense] = useState({
     type_depense: 'Frais Bureau',
     montant: '',
-    date_depense: new Date().toISOString().split('T')[0]
+    date_depense: getCurrentDate()
   });
 
   // États pour les recettes exceptionnelles
@@ -37,7 +40,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
   const [newRecette, setNewRecette] = useState({
     type_recette: 'Hamza',
     montant: '',
-    date_recette: new Date().toISOString().split('T')[0]
+    date_recette: getCurrentDate()
   });
 
   // États pour les ristournes
@@ -46,8 +49,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
     numero_contrat: '',
     client: '',
     montant_ristourne: '',
-    date_ristourne: new Date().toISOString().split('T')[0],
-    date_paiement_ristourne: new Date().toISOString().split('T')[0]
+    date_ristourne: getCurrentDate(),
+    date_paiement_ristourne: getCurrentDate() // Date de paiement verrouillée
   });
 
   // États pour les sinistres
@@ -56,8 +59,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
     numero_sinistre: '',
     montant: '',
     client: '',
-    date_sinistre: new Date().toISOString().split('T')[0],
-    date_paiement_sinistre: new Date().toISOString().split('T')[0]
+    date_sinistre: getCurrentDate(),
+    date_paiement_sinistre: getCurrentDate() // Date de paiement verrouillée
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -120,7 +123,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       setNewDepense({
         type_depense: 'Frais Bureau',
         montant: '',
-        date_depense: new Date().toISOString().split('T')[0]
+        date_depense: getCurrentDate()
       });
       loadData();
     } else {
@@ -148,7 +151,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       setNewRecette({
         type_recette: 'Hamza',
         montant: '',
-        date_recette: new Date().toISOString().split('T')[0]
+        date_recette: getCurrentDate()
       });
       loadData();
     } else {
@@ -181,7 +184,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       numero_contrat: newRistourne.numero_contrat,
       client: newRistourne.client,
       montant_ristourne: parseFloat(newRistourne.montant_ristourne),
-      date_paiement_ristourne: newRistourne.date_paiement_ristourne,
+      date_paiement_ristourne: getCurrentDate(), // Toujours utiliser la date courante
       date_ristourne: newRistourne.date_ristourne,
       cree_par: username
     };
@@ -193,8 +196,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
         numero_contrat: '',
         client: '',
         montant_ristourne: '',
-        date_ristourne: new Date().toISOString().split('T')[0],
-        date_paiement_ristourne: new Date().toISOString().split('T')[0]
+        date_ristourne: getCurrentDate(),
+        date_paiement_ristourne: getCurrentDate()
       });
       loadData();
     } else {
@@ -223,7 +226,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       montant: parseFloat(newSinistre.montant),
       client: newSinistre.client,
       date_sinistre: newSinistre.date_sinistre,
-      date_paiement_sinistre: newSinistre.date_paiement_sinistre,
+      date_paiement_sinistre: getCurrentDate(), // Toujours utiliser la date courante
       cree_par: username
     };
 
@@ -234,8 +237,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
         numero_sinistre: '',
         montant: '',
         client: '',
-        date_sinistre: new Date().toISOString().split('T')[0],
-        date_paiement_sinistre: new Date().toISOString().split('T')[0]
+        date_sinistre: getCurrentDate(),
+        date_paiement_sinistre: getCurrentDate()
       });
       loadData();
     } else {
@@ -288,6 +291,12 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               onChange={(e) => setNewDepense({...newDepense, date_depense: e.target.value})}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
+          </div>
+        </div>
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Lock className="w-4 h-4" />
+            <span>Date de paiement : {getCurrentDate()} (automatique)</span>
           </div>
         </div>
         <button
@@ -375,6 +384,12 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               onChange={(e) => setNewRecette({...newRecette, date_recette: e.target.value})}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
+          </div>
+        </div>
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Lock className="w-4 h-4" />
+            <span>Date de paiement : {getCurrentDate()} (automatique)</span>
           </div>
         </div>
         <button
@@ -470,14 +485,11 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <input
-              type="date"
-              value={newRistourne.date_paiement_ristourne}
-              onChange={(e) => setNewRistourne({...newRistourne, date_paiement_ristourne: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
+        </div>
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Lock className="w-4 h-4" />
+            <span>Date de paiement : {getCurrentDate()} (verrouillée - date courante)</span>
           </div>
         </div>
         <button
@@ -579,14 +591,11 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <input
-              type="date"
-              value={newSinistre.date_paiement_sinistre}
-              onChange={(e) => setNewSinistre({...newSinistre, date_paiement_sinistre: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            />
+        </div>
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Lock className="w-4 h-4" />
+            <span>Date de paiement : {getCurrentDate()} (verrouillée - date courante)</span>
           </div>
         </div>
         <button
