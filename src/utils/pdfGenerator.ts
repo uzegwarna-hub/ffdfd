@@ -25,15 +25,15 @@ export interface SessionReport {
 export const generateSessionReport = async (username: string): Promise<SessionReport> => {
   const sessionDate = getSessionDate();
   console.log('📊 Génération du rapport de session pour:', username, 'Date:', sessionDate);
-  
-  // Récupérer tous les contrats de la session
+
+  // Récupérer tous les contrats de la session (TOUS LES UTILISATEURS)
   const allContracts = await getRapportContracts();
   const sessionContracts = allContracts.filter(contract => {
     const contractDate = new Date(contract.created_at).toISOString().split('T')[0];
-    return contractDate === sessionDate && contract.cree_par === username;
+    return contractDate === sessionDate;
   });
 
-  console.log('📋 Contrats de la session:', sessionContracts.length);
+  console.log('📋 Contrats de la session (tous utilisateurs):', sessionContracts.length);
 
   // Calculer les nouvelles statistiques
   const statistics = {
