@@ -71,27 +71,55 @@ const TermeSearch: React.FC = () => {
         return;
       }
 
-      // Préparer les données pour l'export
-      const exportData = data.map((item, index) => ({
-        'N°': index + 1,
-        'Numéro Contrat': item.numero_contrat || '',
-        'Assuré': item.assure || '',
-        'Prime': item.prime || '',
-        'Montant Crédit': item.montant_credit || '',
-        'Solde': item.montant || '',
-        'Échéance': item.echeance || '',
-        'Date Paiement Crédit': item.date_paiement_credit ? new Date(item.date_paiement_credit).toLocaleDateString('fr-FR') : '',
-        'Montant Paiement Crédit': item.montant_paiement_credit || '',
-        'Utilisateur': item.cree_par || '',
-        'Date Création': item.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR') : '',
-        'Date Modification': item.updated_at ? new Date(item.updated_at).toLocaleDateString('fr-FR') : ''
-      }));
+      // Préparer les données pour l'export avec les nouvelles colonnes
+      const exportData = data.map((item, index) => {
+        // Calculer la prime avant retour (prime - retour)
+        const prime = parseFloat(item.prime) || 0;
+        const retour = parseFloat(item.retour) || 0;
+        const primeAvantRetour = prime + retour;
+
+        return {
+          'N°': index + 1,
+          'Numéro Contrat': item.numero_contrat || '',
+          'Assuré': item.assure || '',
+          'Prime': item.prime || '',
+          'Retour': item.retour || '',
+          'Prime avant retour': primeAvantRetour,
+          'Montant Crédit': item.montant_credit || '',
+          'Solde': item.montant || '',
+          'Échéance': item.echeance || '',
+          'Date Paiement Crédit': item.date_paiement_credit ? new Date(item.date_paiement_credit).toLocaleDateString('fr-FR') : '',
+          'Montant Paiement Crédit': item.montant_paiement_credit || '',
+          'Utilisateur': item.cree_par || '',
+          'Date Création': item.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR') : '',
+          'Date Modification': item.updated_at ? new Date(item.updated_at).toLocaleDateString('fr-FR') : ''
+        };
+      });
 
       // Créer un nouveau classeur
       const wb = XLSX.utils.book_new();
       
       // Créer une feuille à partir des données
       const ws = XLSX.utils.json_to_sheet(exportData);
+      
+      // Définir les largeurs de colonnes pour un meilleur affichage
+      const colWidths = [
+        { wch: 5 },  // N°
+        { wch: 15 }, // Numéro Contrat
+        { wch: 20 }, // Assuré
+        { wch: 12 }, // Prime
+        { wch: 12 }, // Retour
+        { wch: 15 }, // Prime avant retour
+        { wch: 15 }, // Montant Crédit
+        { wch: 12 }, // Solde
+        { wch: 12 }, // Échéance
+        { wch: 15 }, // Date Paiement Crédit
+        { wch: 18 }, // Montant Paiement Crédit
+        { wch: 15 }, // Utilisateur
+        { wch: 12 }, // Date Création
+        { wch: 12 }, // Date Modification
+      ];
+      ws['!cols'] = colWidths;
       
       // Ajouter la feuille au classeur
       XLSX.utils.book_append_sheet(wb, ws, 'Termes');
@@ -205,6 +233,8 @@ const TermeSearch: React.FC = () => {
             <div>
               <p><strong>Assuré:</strong> {result.assure}</p>
               <p><strong>Prime:</strong> {result.prime}</p>
+              <p><strong>Retour:</strong> {result.retour || 'N/A'}</p>
+              <p><strong>Prime avant retour:</strong> {(parseFloat(result.prime || 0) + parseFloat(result.retour || 0)).toFixed(2)}</p>
               <p><strong>Montant Crédit:</strong> {result.montant_credit || 'N/A'}</p>
               <p><strong>Solde:</strong> {result.montant}</p>
               <p><strong>Utilisateur:</strong> {result.cree_par}</p>
