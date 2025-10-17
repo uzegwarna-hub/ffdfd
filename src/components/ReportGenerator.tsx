@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Download, Calendar, DollarSign, FileText, Users, Trash2, Filter, PieChart, TrendingUp } from 'lucide-react';
+import { BarChart3, Download, Calendar, DollarSign, FileText, Users, Trash2 } from 'lucide-react';
 import { getContracts, exportToXLSX } from '../utils/storage';
 import { Contract } from '../types';
 import { getAffaireContracts, getRapportContracts, getTermeContracts, deleteRapportContract, deleteAffaireContract, deleteTermeContract, getFilteredDataForExport } from '../utils/supabaseService';
@@ -40,6 +40,7 @@ const ReportGenerator: React.FC = () => {
       console.log('🔍 Premier contrat:', rapportData[0]);
       setRapportContracts(rapportData);
       
+      // Filtrer les données de session par défaut
       const sessionDate = getSessionDate();
       const sessionData = rapportData.filter(contract => {
         const contractDate = new Date(contract.created_at).toISOString().split('T')[0];
@@ -58,6 +59,7 @@ const ReportGenerator: React.FC = () => {
       const affaires = await getAffaireContracts();
       setAffaireContracts(affaires);
       
+      // Filtrer les données de session
       const sessionDate = getSessionDate();
       const sessionAffaires = affaires.filter(contract => {
         const contractDate = new Date(contract.created_at).toISOString().split('T')[0];
@@ -76,6 +78,7 @@ const ReportGenerator: React.FC = () => {
       const termes = await getTermeContracts();
       setTermeContracts(termes);
       
+      // Filtrer les données de session
       const sessionDate = getSessionDate();
       const sessionTermes = termes.filter(contract => {
         const contractDate = new Date(contract.created_at).toISOString().split('T')[0];
@@ -155,6 +158,7 @@ const ReportGenerator: React.FC = () => {
   };
 
   const exportToExcel = async () => {
+    // Vérifier que les filtres sont remplis
     if (!filters.type || filters.type === 'all') {
       alert('Veuillez sélectionner un type avant d\'exporter');
       return;
@@ -173,13 +177,16 @@ const ReportGenerator: React.FC = () => {
     try {
       let filteredData = [];
 
+      // Si le type est "Rapport", exporter directement toutes les données de la table rapport
       if (filters.type === 'Rapport') {
+        // Récupérer toutes les données de la table rapport dans la plage de dates
         filteredData = await getFilteredDataForExport(
-          'all',
+          'all', // Tous les types pour obtenir toute la table rapport
           filters.dateFrom,
           filters.dateTo
         );
       } else {
+        // Récupérer les données filtrées par type spécifique
         filteredData = await getFilteredDataForExport(
           filters.type,
           filters.dateFrom,
@@ -192,6 +199,7 @@ const ReportGenerator: React.FC = () => {
         return;
       }
 
+      // Convertir les données rapport au format attendu par exportToXLSX
       const contractsForExport = filteredData.map(contract => ({
         id: contract.id.toString(),
         type: contract.type,
@@ -262,371 +270,299 @@ const ReportGenerator: React.FC = () => {
   const uniqueUsers = [...new Set(rapportContracts.map(c => c.cree_par))];
   const sessionDate = getSessionDate();
 
-  // Couleurs du thème professionnel
-  const colors = {
-    primary: {
-      50: '#f0f9ff',
-      100: '#e0f2fe',
-      500: '#0ea5e9',
-      600: '#0284c7',
-      700: '#0369a1',
-      900: '#0c4a6e'
-    },
-    slate: {
-      50: '#f8fafc',
-      100: '#f1f5f9',
-      200: '#e2e8f0',
-      300: '#cbd5e1',
-      400: '#94a3b8',
-      500: '#64748b',
-      600: '#475569',
-      700: '#334155',
-      800: '#1e293b',
-      900: '#0f172a'
-    },
-    success: {
-      50: '#f0fdf4',
-      500: '#22c55e',
-      600: '#16a34a',
-      700: '#15803d'
-    },
-    warning: {
-      50: '#fffbeb',
-      500: '#f59e0b',
-      600: '#d97706'
-    },
-    error: {
-      50: '#fef2f2',
-      500: '#ef4444',
-      600: '#dc2626'
-    }
-  };
-
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header avec fond dégradé */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-t-2xl p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
-              <BarChart3 className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                Tableau de Bord Analytique
-              </h2>
-              <p className="text-slate-300 text-sm">
-                {showSessionData 
-                  ? `Session du ${new Date(sessionDate).toLocaleDateString('fr-FR')}`
-                  : 'Vue globale de toutes les données'
-                }
-              </p>
-            </div>
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <BarChart3 className="w-6 h-6 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Rapports et Statistiques {showSessionData && `- Session du ${new Date(sessionDate).toLocaleDateString('fr-FR')}`}
+            </h2>
           </div>
           <div className="flex space-x-3">
             <button
               onClick={() => setShowSessionData(!showSessionData)}
-              className={`py-2.5 px-4 rounded-xl font-semibold transition-all duration-200 border ${
+              className={`py-2 px-4 rounded-lg font-semibold transition-colors duration-200 ${
                 showSessionData
-                  ? 'bg-white text-slate-900 border-white hover:bg-slate-100'
-                  : 'bg-transparent text-white border-white/30 hover:bg-white/10'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
               }`}
             >
-              {showSessionData ? 'Vue Globale' : 'Vue Session'}
+              {showSessionData ? 'Voir toutes les données' : 'Voir session actuelle'}
             </button>
             <button
               onClick={exportToExcel}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg shadow-emerald-500/25"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
-              <span>Exporter Excel</span>
+              <span>Exporter XLSX</span>
             </button>
           </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-        {/* Section Filtres */}
-        <div className="border-b border-slate-200">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-900 flex items-center space-x-2">
-                <Filter className="w-5 h-5 text-slate-500" />
-                <span>Filtres et Recherche</span>
-              </h3>
-              <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                {filteredContracts.length} résultat(s)
-              </span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <select
-                name="type"
-                value={filters.type}
-                onChange={handleFilterChange}
-                className="p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-slate-700 transition-all duration-200"
-              >
-                <option value="all">Tous les types</option>
-                <option value="Terme">Terme</option>
-                <option value="Affaire">Affaire</option>
-                <option value="Credit">Credit</option>
-                <option value="Rapport">Rapport</option>
-              </select>
+        {/* Filtres */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Filtres</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <select
+              name="type"
+              value={filters.type}
+              onChange={handleFilterChange}
+              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Tous les types</option>
+              <option value="Terme">Terme</option>
+              <option value="Affaire">Affaire</option>
+              <option value="Credit">Credit</option>
+              <option value="Rapport">Rapport</option>
+            </select>
 
-              <select
-                name="branch"
-                value={filters.branch}
-                onChange={handleFilterChange}
-                className="p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-slate-700 transition-all duration-200"
-              >
-                <option value="all">Toutes les branches</option>
-                <option value="Auto">Auto</option>
-                <option value="Vie">Vie</option>
-                <option value="Santé">Santé</option>
-                <option value="IRDS">IRDS</option>
-              </select>
+            <select
+              name="branch"
+              value={filters.branch}
+              onChange={handleFilterChange}
+              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Toutes les branches</option>
+              <option value="Auto">Auto</option>
+              <option value="Vie">Vie</option>
+              <option value="Santé">Santé</option>
+              <option value="IRDS">IRDS</option>
+            </select>
 
-              <select
-                name="paymentMode"
-                value={filters.paymentMode}
-                onChange={handleFilterChange}
-                className="p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-slate-700 transition-all duration-200"
-              >
-                <option value="all">Tous les modes</option>
-                <option value="Espece">Espèce</option>
-                <option value="Cheque">Chèque</option>
-                <option value="Carte Bancaire">Carte Bancaire</option>
-              </select>
+            <select
+              name="paymentMode"
+              value={filters.paymentMode}
+              onChange={handleFilterChange}
+              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Tous les modes</option>
+              <option value="Espece">Espèce</option>
+              <option value="Cheque">Chèque</option>
+              <option value="Carte Bancaire">Carte Bancaire</option>
+            </select>
 
-              <select
-                name="createdBy"
-                value={filters.createdBy}
-                onChange={handleFilterChange}
-                className="p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-slate-700 transition-all duration-200"
-              >
-                <option value="all">Tous les utilisateurs</option>
-                {uniqueUsers.map(user => (
-                  <option key={user} value={user}>{user}</option>
-                ))}
-              </select>
+            <select
+              name="createdBy"
+              value={filters.createdBy}
+              onChange={handleFilterChange}
+              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Tous les utilisateurs</option>
+              {uniqueUsers.map(user => (
+                <option key={user} value={user}>{user}</option>
+              ))}
+            </select>
 
-              <input
-                type="date"
-                name="dateFrom"
-                value={filters.dateFrom}
-                onChange={handleFilterChange}
-                className="p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-slate-700 transition-all duration-200"
-              />
+            <input
+              type="date"
+              name="dateFrom"
+              value={filters.dateFrom}
+              onChange={handleFilterChange}
+              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
 
-              <input
-                type="date"
-                name="dateTo"
-                value={filters.dateTo}
-                onChange={handleFilterChange}
-                className="p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-slate-700 transition-all duration-200"
-              />
-            </div>
+            <input
+              type="date"
+              name="dateTo"
+              value={filters.dateTo}
+              onChange={handleFilterChange}
+              className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
         </div>
 
         {/* Statistiques générales */}
-        <div className="p-6 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-slate-500" />
-            <span>Vue d'Ensemble</span>
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {/* Total Contrats */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Total Contrats</p>
-                  <p className="text-3xl font-bold text-blue-900 mt-2">{stats.totalContracts}</p>
-                  <p className="text-xs text-blue-600 mt-1">{showSessionData ? 'Session actuelle' : 'Toutes données'}</p>
-                </div>
-                <div className="p-3 bg-blue-500 rounded-xl">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+          <div className="bg-blue-50 rounded-lg p-6">
+            <div className="flex items-center space-x-3">
+              <FileText className="w-8 h-8 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium text-blue-600">Total Contrats</p>
+                <p className="text-2xl font-bold text-blue-900">{stats.totalContracts}</p>
+                <p className="text-xs text-blue-600">{showSessionData ? 'Session actuelle' : 'Toutes données'}</p>
               </div>
             </div>
+          </div>
 
-            {/* Prime Totale */}
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-emerald-700 uppercase tracking-wide">Prime Totale</p>
-                  <p className="text-3xl font-bold text-emerald-900 mt-2">
-                    {stats.totalPremium.toLocaleString('fr-FR')} DT
-                  </p>
-                </div>
-                <div className="p-3 bg-emerald-500 rounded-xl">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
+          <div className="bg-green-50 rounded-lg p-6">
+            <div className="flex items-center space-x-3">
+              <DollarSign className="w-8 h-8 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-600">Prime Totale</p>
+                <p className="text-2xl font-bold text-green-900">
+                  {stats.totalPremium.toLocaleString('fr-FR')} DT
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Total Session */}
-            <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl p-6 border border-violet-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-violet-700 uppercase tracking-wide">Total Session</p>
-                  <p className={`text-3xl font-bold mt-2 ${
-                    stats.totalMontant >= 0 ? 'text-violet-900' : 'text-red-900'
-                  }`}>
-                    {stats.totalMontant.toLocaleString('fr-FR')} DT
-                  </p>
-                  <p className={`text-xs mt-1 ${
-                    stats.totalMontant >= 0 ? 'text-violet-600' : 'text-red-600'
-                  }`}>
-                    {stats.totalMontant >= 0 ? '✓ Résultat positif' : '⚠ Résultat négatif'}
-                  </p>
-                </div>
-                <div className={`p-3 rounded-xl ${
-                  stats.totalMontant >= 0 ? 'bg-violet-500' : 'bg-red-500'
-                }`}>
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
+          <div className="bg-emerald-50 rounded-lg p-6">
+            <div className="flex items-center space-x-3">
+              <DollarSign className="w-8 h-8 text-emerald-600" />
+              <div>
+                <p className="text-sm font-medium text-emerald-600">Total Session</p>
+                <p className={`text-2xl font-bold ${stats.totalMontant >= 0 ? 'text-emerald-900' : 'text-red-900'}`}>
+                  {stats.totalMontant.toLocaleString('fr-FR')} DT
+                </p>
+                <p className="text-xs text-emerald-600">
+                  {stats.totalMontant >= 0 ? 'Résultat positif' : 'Résultat négatif'}
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Prime Moyenne */}
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 border border-amber-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-amber-700 uppercase tracking-wide">Prime Moyenne</p>
-                  <p className="text-3xl font-bold text-amber-900 mt-2">
-                    {stats.avgPremium.toLocaleString('fr-FR')} DT
-                  </p>
-                </div>
-                <div className="p-3 bg-amber-500 rounded-xl">
-                  <PieChart className="w-6 h-6 text-white" />
-                </div>
+          <div className="bg-purple-50 rounded-lg p-6">
+            <div className="flex items-center space-x-3">
+              <BarChart3 className="w-8 h-8 text-purple-600" />
+              <div>
+                <p className="text-sm font-medium text-purple-600">Prime Moyenne</p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {stats.avgPremium.toLocaleString('fr-FR')} DT
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Utilisateurs */}
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 border border-slate-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Utilisateurs</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-2">{uniqueUsers.length}</p>
-                </div>
-                <div className="p-3 bg-slate-500 rounded-xl">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
+          <div className="bg-orange-50 rounded-lg p-6">
+            <div className="flex items-center space-x-3">
+              <Users className="w-8 h-8 text-orange-600" />
+              <div>
+                <p className="text-sm font-medium text-orange-600">Utilisateurs</p>
+                <p className="text-2xl font-bold text-orange-900">{uniqueUsers.length}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Graphiques et répartitions */}
-        <div className="p-6 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center space-x-2">
-            <PieChart className="w-5 h-5 text-slate-500" />
-            <span>Répartitions</span>
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Répartition par Type */}
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Par Type</h3>
-              <div className="space-y-4">
-                {Object.entries(stats.byType).map(([type, count]) => (
-                  <div key={type} className="flex justify-between items-center">
-                    <span className="text-slate-700 font-medium">{type}</span>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-24 bg-slate-200 rounded-full h-2.5">
-                        <div
-                          className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
-                          style={{ width: `${(count / stats.totalContracts) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-slate-900 w-8 text-right">{count}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Répartition par Type */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Par Type</h3>
+            <div className="space-y-3">
+              {Object.entries(stats.byType).map(([type, count]) => (
+                <div key={type} className="flex justify-between items-center">
+                  <span className="text-gray-700">{type}</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
+                        style={{ width: `${(count / stats.totalContracts) * 100}%` }}
+                      ></div>
                     </div>
+                    <span className="text-sm font-medium text-gray-900 w-8">{count}</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* Répartition par Branche */}
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Par Branche</h3>
-              <div className="space-y-4">
-                {Object.entries(stats.byBranch).map(([branch, count]) => (
-                  <div key={branch} className="flex justify-between items-center">
-                    <span className="text-slate-700 font-medium">{branch}</span>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-24 bg-slate-200 rounded-full h-2.5">
-                        <div
-                          className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500"
-                          style={{ width: `${(count / stats.totalContracts) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-slate-900 w-8 text-right">{count}</span>
+          {/* Répartition par Branche */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Par Branche</h3>
+            <div className="space-y-3">
+              {Object.entries(stats.byBranch).map(([branch, count]) => (
+                <div key={branch} className="flex justify-between items-center">
+                  <span className="text-gray-700">{branch}</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-600 h-2 rounded-full"
+                        style={{ width: `${(count / stats.totalContracts) * 100}%` }}
+                      ></div>
                     </div>
+                    <span className="text-sm font-medium text-gray-900 w-8">{count}</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* Répartition par Mode de Paiement */}
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Par Mode de Paiement</h3>
-              <div className="space-y-4">
-                {Object.entries(stats.byPaymentMode).map(([mode, count]) => (
-                  <div key={mode} className="flex justify-between items-center">
-                    <span className="text-slate-700 font-medium">{mode}</span>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-24 bg-slate-200 rounded-full h-2.5">
-                        <div
-                          className="bg-violet-500 h-2.5 rounded-full transition-all duration-500"
-                          style={{ width: `${(count / stats.totalContracts) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-slate-900 w-8 text-right">{count}</span>
+          {/* Répartition par Mode de Paiement */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Par Mode de Paiement</h3>
+            <div className="space-y-3">
+              {Object.entries(stats.byPaymentMode).map(([mode, count]) => (
+                <div key={mode} className="flex justify-between items-center">
+                  <span className="text-gray-700">{mode}</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-purple-600 h-2 rounded-full"
+                        style={{ width: `${(count / stats.totalContracts) * 100}%` }}
+                      ></div>
                     </div>
+                    <span className="text-sm font-medium text-gray-900 w-8">{count}</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Sections des contrats spécifiques */}
-        {/* Section Contrats Terme */}
+        {/* Section Contrats Terme de la session */}
         {showSessionData && sessionTermeContracts.length > 0 && (
-          <div className="p-6 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>Contrats Terme - Session actuelle ({sessionTermeContracts.length})</span>
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Contrats Terme - Session actuelle ({sessionTermeContracts.length})
             </h3>
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-blue-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Numéro</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Branche</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Assuré</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Prime (DT)</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Échéance</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Date Paiement</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider">
+                      Numéro
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider">
+                      Branche
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider">
+                      Assuré
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider">
+                      Prime (DT)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider">
+                      Échéance
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider">
+                      Date Paiement
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {sessionTermeContracts.map((contract) => (
-                    <tr key={contract.id} className="hover:bg-blue-50/50 transition-colors duration-150">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{contract.numero_contrat}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.branche}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.assure}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">{contract.prime.toLocaleString('fr-FR')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{new Date(contract.echeance).toLocaleDateString('fr-FR')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{new Date(contract.date_paiement).toLocaleDateString('fr-FR')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <tr key={contract.id} className="hover:bg-blue-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {contract.numero_contrat}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.branche}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.assure}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.prime.toLocaleString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(contract.echeance).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(contract.date_paiement).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <button
                           onClick={() => handleDeleteTerme(contract.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                          className="text-red-600 hover:text-red-800 transition-colors"
                           title="Supprimer"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
                       </td>
                     </tr>
@@ -637,56 +573,81 @@ const ReportGenerator: React.FC = () => {
           </div>
         )}
 
-        {/* Section Contrats Affaire */}
+        {/* Section Contrats Affaire depuis Supabase */}
         {(showSessionData ? sessionAffaireContracts : affaireContracts).length > 0 && (
-          <div className="p-6 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-              <span>
-                Contrats Affaire {showSessionData ? '- Session actuelle' : '(Toutes données)'} - {(showSessionData ? sessionAffaireContracts : affaireContracts).length}
-              </span>
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Contrats Affaire {showSessionData ? '- Session actuelle' : '(Toutes données)'} - {(showSessionData ? sessionAffaireContracts : affaireContracts).length}
             </h3>
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-green-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Numéro</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Branche</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Assuré</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Prime (DT)</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Paiement</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Créé par</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Numéro
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Branche
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Assuré
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Prime (DT)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Paiement
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Créé par
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {(showSessionData ? sessionAffaireContracts : affaireContracts).map((contract) => (
-                    <tr key={contract.id} className="hover:bg-emerald-50/50 transition-colors duration-150">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{contract.numero_contrat}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.branche}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.assure}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-600">{contract.prime.toLocaleString('fr-FR')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                    <tr key={contract.id} className="hover:bg-green-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {contract.numero_contrat}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.branche}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.assure}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.prime.toLocaleString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div>
-                          <div className="font-medium">{contract.mode_paiement}</div>
-                          <div className="text-xs text-slate-500">{contract.type_paiement}</div>
+                          <div>{contract.mode_paiement}</div>
+                          <div className="text-xs text-gray-500">{contract.type_paiement}</div>
                           {contract.montant_credit && (
-                            <div className="text-xs text-amber-600 font-medium">
+                            <div className="text-xs text-orange-600">
                               Crédit: {contract.montant_credit} DT
                             </div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.cree_par}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{new Date(contract.created_at).toLocaleDateString('fr-FR')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.cree_par}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(contract.created_at).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <button
                           onClick={() => handleDeleteAffaire(contract.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                          className="text-red-600 hover:text-red-800 transition-colors"
                           title="Supprimer"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
                       </td>
                     </tr>
@@ -697,140 +658,173 @@ const ReportGenerator: React.FC = () => {
           </div>
         )}
 
-        {/* Table principale Rapport */}
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-            <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
-            <span>
-              Table Rapport {showSessionData ? '- Session actuelle' : '- Toutes données'} ({filteredContracts.length} contrats)
-            </span>
+        {/* Liste des contrats */}
+        <div className="overflow-x-auto">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Table Rapport {showSessionData ? '- Session actuelle' : '- Toutes données'} ({filteredContracts.length} contrats)
           </h3>
           
           {/* Debug info */}
-          <div className="mb-4 p-4 bg-blue-50 rounded-2xl border border-blue-200 text-sm">
-            <p className="text-blue-700"><strong>Debug:</strong> Contrats rapport: {showSessionData ? sessionRapportContracts.length : rapportContracts.length}, Filtrés: {filteredContracts.length}</p>
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+            <p><strong>Debug:</strong> Contrats rapport: {showSessionData ? sessionRapportContracts.length : rapportContracts.length}, Filtrés: {filteredContracts.length}</p>
             {rapportContracts.length === 0 && (
-              <p className="text-red-600 mt-1">⚠️ Aucun contrat dans la table rapport. Vérifiez que des contrats ont été sauvegardés.</p>
+              <p className="text-red-600">⚠️ Aucun contrat dans la table rapport. Vérifiez que des contrats ont été sauvegardés.</p>
             )}
           </div>
           
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Numéro</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Branche</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Assuré</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Prime (DT)</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Montant (DT)</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Mode Paiement</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Type Paiement</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Montant Crédit (DT)</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Date Paiement Prévue</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Échéance</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Créé par</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Numéro
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Branche
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Assuré
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Prime (DT)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Montant (DT)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Mode Paiement
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type Paiement
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Montant Crédit (DT)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date Paiement Prévue
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Échéance
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Créé par
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredContracts.map((contract) => (
+                <tr key={contract.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {contract.numero_contrat}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      contract.type === 'Terme' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                    }`}>
+                      {contract.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {contract.branche}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {contract.assure}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {(contract.prime || 0).toLocaleString('fr-FR')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <span className={`font-semibold ${(contract.montant || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(contract.montant || 0).toLocaleString('fr-FR')}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {contract.mode_paiement}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      contract.type_paiement === 'Au comptant'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {contract.type_paiement}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {contract.montant_credit ? (
+                      <span className="font-semibold text-orange-600">
+                        {contract.montant_credit.toLocaleString('fr-FR')}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 italic">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {contract.date_paiement_prevue ? (
+                      new Date(contract.date_paiement_prevue).toLocaleDateString('fr-FR')
+                    ) : (
+                      <span className="text-gray-400 italic">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {contract.echeance ? (
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {new Date(contract.echeance).toLocaleDateString('fr-FR')}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 italic">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {contract.cree_par}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {new Date(contract.created_at).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <button
+                      onClick={() => handleDeleteRapport(contract.id, contract.numero_contrat)}
+                      className="text-red-600 hover:text-red-800 transition-colors"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                {filteredContracts.map((contract) => (
-                  <tr key={contract.id} className="hover:bg-slate-50/80 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{contract.numero_contrat}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${
-                        contract.type === 'Terme' 
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                          : contract.type === 'Affaire'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                          : 'bg-violet-100 text-violet-800 border border-violet-200'
-                      }`}>
-                        {contract.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.branche}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.assure}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{(contract.prime || 0).toLocaleString('fr-FR')}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`font-bold text-lg ${(contract.montant || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {(contract.montant || 0).toLocaleString('fr-FR')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.mode_paiement}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        contract.type_paiement === 'Au comptant'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                          : 'bg-amber-100 text-amber-800 border border-amber-200'
-                      }`}>
-                        {contract.type_paiement}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {contract.montant_credit ? (
-                        <span className="font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
-                          {contract.montant_credit.toLocaleString('fr-FR')}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 italic text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                      {contract.date_paiement_prevue ? (
-                        new Date(contract.date_paiement_prevue).toLocaleDateString('fr-FR')
-                      ) : (
-                        <span className="text-slate-400 italic text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {contract.echeance ? (
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                          {new Date(contract.echeance).toLocaleDateString('fr-FR')}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 italic text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{contract.cree_par}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{new Date(contract.created_at).toLocaleDateString('fr-FR')}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={() => handleDeleteRapport(contract.id, contract.numero_contrat)}
-                        className="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {filteredContracts.length === 0 && (
-              <div className="text-center py-12 text-slate-500 bg-slate-50">
-                <FileText className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                <p className="text-lg font-medium">Aucun contrat trouvé</p>
-                <p className="text-sm mt-1">Ajustez vos filtres pour voir les résultats</p>
-              </div>
-            )}
-          </div>
+              ))}
+            </tbody>
+          </table>
+          
+          {filteredContracts.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Aucun contrat trouvé avec les filtres sélectionnés
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Section pour les contrats locaux */}
-      {localContracts.length > 0 && (
-        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-amber-900 mb-2">
-            Contrats locaux (stockage navigateur) - {localContracts.length}
-          </h3>
-          <p className="text-amber-800 text-sm">
-            Ces contrats sont stockés localement dans le navigateur. 
-            Ils devraient maintenant être sauvegardés dans la table rapport.
-          </p>
-        </div>
-      )}
+        {/* Section pour les contrats locaux (optionnel) */}
+        {localContracts.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Contrats locaux (stockage navigateur) - {localContracts.length}
+            </h3>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-yellow-800 text-sm">
+                Ces contrats sont stockés localement dans le navigateur. 
+                Ils devraient maintenant être sauvegardés dans la table rapport.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

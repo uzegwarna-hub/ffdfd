@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, FileText, Upload, BarChart3, Clock, User, Search, Calendar } from 'lucide-react';
+import { LogOut, FileText, Upload, BarChart3, Clock, User, Search } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
 import { getSession, clearSession, isAdmin } from '../utils/auth';
 import LogoutConfirmation from './LogoutConfirmation';
@@ -11,7 +11,6 @@ import CreditsList from './CreditsList';
 import FinancialManagement from './FinancialManagement';
 import CreditPayment from './CreditPayment';
 import TermeSearch from './TermeSearch';
-import TransactionReport from './TransactionReport';
 
 interface DashboardProps {
   username: string;
@@ -19,7 +18,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ username, onLogout }) => {
-  const [activeTab, setActiveTab] = useState<'contract' | 'xml' | 'reports' | 'credits' | 'financial' | 'payment' | 'terme' | 'transactions'>('contract');
+  const [activeTab, setActiveTab] = useState<'contract' | 'xml' | 'reports' | 'credits' | 'financial' | 'payment' | 'terme'>('contract');
   const [sessionInfo, setSessionInfo] = useState<any>(null);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
@@ -186,17 +185,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, onLogout }) => {
               <Search className="w-4 h-4" />
               <span>Terme</span>
             </button>
-            <button
-              onClick={() => setActiveTab('transactions')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors duration-200 flex items-center space-x-2 ${
-                activeTab === 'transactions'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50/50'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Rapport Transactions</span>
-            </button>
           </div>
         </div>
       </nav>
@@ -210,7 +198,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, onLogout }) => {
         {activeTab === 'financial' && <FinancialManagement username={username} />}
         {activeTab === 'payment' && <CreditPayment />}
         {activeTab === 'terme' && <TermeSearch />}
-        {activeTab === 'transactions' && <TransactionReport />}
       </main>
 
       {/* Modal de confirmation de déconnexion */}

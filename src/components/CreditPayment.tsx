@@ -254,4 +254,5 @@ const CreditPayment: React.FC = () => {
     </div>
   );
 };
+
 export default CreditPayment;
