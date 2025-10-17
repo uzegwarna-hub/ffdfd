@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Gift, AlertTriangle, Save, Plus, Trash2, Lock } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Gift, AlertTriangle, Save, Plus, Trash2 } from 'lucide-react';
 import { 
   saveDepense, 
   getDepenses, 
@@ -24,16 +24,12 @@ interface FinancialManagementProps {
 const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) => {
   const [activeSection, setActiveSection] = useState<'depenses' | 'recettes' | 'ristournes' | 'sinistres'>('depenses');
   
-  // Fonction pour obtenir la date courante au format YYYY-MM-DD
-  const getCurrentDate = () => new Date().toISOString().split('T')[0];
-  
   // États pour les dépenses
   const [depenses, setDepenses] = useState<Depense[]>([]);
   const [newDepense, setNewDepense] = useState({
     type_depense: 'Frais Bureau',
     montant: '',
-    date_depense: getCurrentDate(),
-    date_paiement: getCurrentDate() // Date de paiement verrouillée
+    date_depense: new Date().toISOString().split('T')[0]
   });
 
   // États pour les recettes exceptionnelles
@@ -41,8 +37,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
   const [newRecette, setNewRecette] = useState({
     type_recette: 'Hamza',
     montant: '',
-    date_recette: getCurrentDate(),
-    date_paiement: getCurrentDate() // Date de paiement verrouillée
+    date_recette: new Date().toISOString().split('T')[0]
   });
 
   // États pour les ristournes
@@ -51,8 +46,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
     numero_contrat: '',
     client: '',
     montant_ristourne: '',
-    date_ristourne: getCurrentDate(),
-    date_paiement_ristourne: getCurrentDate() // Date de paiement verrouillée
+    date_ristourne: new Date().toISOString().split('T')[0],
+    date_paiement_ristourne: new Date().toISOString().split('T')[0]
   });
 
   // États pour les sinistres
@@ -61,8 +56,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
     numero_sinistre: '',
     montant: '',
     client: '',
-    date_sinistre: getCurrentDate(),
-    date_paiement_sinistre: getCurrentDate() // Date de paiement verrouillée
+    date_sinistre: new Date().toISOString().split('T')[0],
+    date_paiement_sinistre: new Date().toISOString().split('T')[0]
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -116,7 +111,6 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       type_depense: newDepense.type_depense,
       montant: parseFloat(newDepense.montant),
       date_depense: newDepense.date_depense,
-      date_paiement: getCurrentDate(), // Toujours utiliser la date courante
       cree_par: username
     };
 
@@ -126,8 +120,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       setNewDepense({
         type_depense: 'Frais Bureau',
         montant: '',
-        date_depense: getCurrentDate(),
-        date_paiement: getCurrentDate()
+        date_depense: new Date().toISOString().split('T')[0]
       });
       loadData();
     } else {
@@ -146,7 +139,6 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       type_recette: newRecette.type_recette,
       montant: parseFloat(newRecette.montant),
       date_recette: newRecette.date_recette,
-      date_paiement: getCurrentDate(), // Toujours utiliser la date courante
       cree_par: username
     };
 
@@ -156,8 +148,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       setNewRecette({
         type_recette: 'Hamza',
         montant: '',
-        date_recette: getCurrentDate(),
-        date_paiement: getCurrentDate()
+        date_recette: new Date().toISOString().split('T')[0]
       });
       loadData();
     } else {
@@ -190,7 +181,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       numero_contrat: newRistourne.numero_contrat,
       client: newRistourne.client,
       montant_ristourne: parseFloat(newRistourne.montant_ristourne),
-      date_paiement_ristourne: getCurrentDate(), // Toujours utiliser la date courante
+      date_paiement_ristourne: newRistourne.date_paiement_ristourne,
       date_ristourne: newRistourne.date_ristourne,
       cree_par: username
     };
@@ -202,8 +193,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
         numero_contrat: '',
         client: '',
         montant_ristourne: '',
-        date_ristourne: getCurrentDate(),
-        date_paiement_ristourne: getCurrentDate()
+        date_ristourne: new Date().toISOString().split('T')[0],
+        date_paiement_ristourne: new Date().toISOString().split('T')[0]
       });
       loadData();
     } else {
@@ -232,7 +223,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
       montant: parseFloat(newSinistre.montant),
       client: newSinistre.client,
       date_sinistre: newSinistre.date_sinistre,
-      date_paiement_sinistre: getCurrentDate(), // Toujours utiliser la date courante
+      date_paiement_sinistre: newSinistre.date_paiement_sinistre,
       cree_par: username
     };
 
@@ -243,8 +234,8 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
         numero_sinistre: '',
         montant: '',
         client: '',
-        date_sinistre: getCurrentDate(),
-        date_paiement_sinistre: getCurrentDate()
+        date_sinistre: new Date().toISOString().split('T')[0],
+        date_paiement_sinistre: new Date().toISOString().split('T')[0]
       });
       loadData();
     } else {
@@ -290,29 +281,13 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de dépense</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
             <input
               type="date"
               value={newDepense.date_depense}
               onChange={(e) => setNewDepense({...newDepense, date_depense: e.target.value})}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
-          </div>
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={newDepense.date_paiement}
-                disabled
-                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 text-gray-500">
-                <Lock className="w-4 h-4" />
-                <span className="text-sm">Verrouillée</span>
-              </div>
-            </div>
-            <p className="mt-1 text-xs text-gray-500">La date de paiement est automatiquement définie sur la date courante</p>
           </div>
         </div>
         <button
@@ -333,8 +308,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">Type</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">Montant (DT)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">Date Dépense</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">Date Paiement</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">Créé par</th>
               </tr>
             </thead>
@@ -347,9 +321,6 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {depense.date_depense ? new Date(depense.date_depense).toLocaleDateString('fr-FR') : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {depense.date_paiement ? new Date(depense.date_paiement).toLocaleDateString('fr-FR') : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{depense.cree_par}</td>
                 </tr>
@@ -397,29 +368,13 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de recette</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
             <input
               type="date"
               value={newRecette.date_recette}
               onChange={(e) => setNewRecette({...newRecette, date_recette: e.target.value})}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
-          </div>
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={newRecette.date_paiement}
-                disabled
-                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 text-gray-500">
-                <Lock className="w-4 h-4" />
-                <span className="text-sm">Verrouillée</span>
-              </div>
-            </div>
-            <p className="mt-1 text-xs text-gray-500">La date de paiement est automatiquement définie sur la date courante</p>
           </div>
         </div>
         <button
@@ -440,8 +395,7 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">Type</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">Montant (DT)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">Date Recette</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">Date Paiement</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-green-600 uppercase tracking-wider">Créé par</th>
               </tr>
             </thead>
@@ -454,9 +408,6 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {recette.date_recette ? new Date(recette.date_recette).toLocaleDateString('fr-FR') : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {recette.date_paiement ? new Date(recette.date_paiement).toLocaleDateString('fr-FR') : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{recette.cree_par}</td>
                 </tr>
@@ -519,21 +470,14 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={newRistourne.date_paiement_ristourne}
-                disabled
-                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 text-gray-500">
-                <Lock className="w-4 h-4" />
-                <span className="text-sm">Verrouillée</span>
-              </div>
-            </div>
-            <p className="mt-1 text-xs text-gray-500">La date de paiement est automatiquement définie sur la date courante</p>
+            <input
+              type="date"
+              value={newRistourne.date_paiement_ristourne}
+              onChange={(e) => setNewRistourne({...newRistourne, date_paiement_ristourne: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
           </div>
         </div>
         <button
@@ -635,21 +579,14 @@ const FinancialManagement: React.FC<FinancialManagementProps> = ({ username }) =
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
           </div>
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={newSinistre.date_paiement_sinistre}
-                disabled
-                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 text-gray-500">
-                <Lock className="w-4 h-4" />
-                <span className="text-sm">Verrouillée</span>
-              </div>
-            </div>
-            <p className="mt-1 text-xs text-gray-500">La date de paiement est automatiquement définie sur la date courante</p>
+            <input
+              type="date"
+              value={newSinistre.date_paiement_sinistre}
+              onChange={(e) => setNewSinistre({...newSinistre, date_paiement_sinistre: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
           </div>
         </div>
         <button
