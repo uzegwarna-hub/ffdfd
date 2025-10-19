@@ -167,7 +167,6 @@ export const saveCreditContract = async (contractData: any): Promise<boolean> =>
     const { data, error } = await supabase
       .from('liste_credits')
       .insert([{
-        type: contractData.type || null,
         numero_contrat: contractData.contractNumber || '',
         prime: primeValue,
         assure: contractData.insuredName,
