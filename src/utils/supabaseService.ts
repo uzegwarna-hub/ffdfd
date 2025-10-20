@@ -591,7 +591,7 @@ export const updateCreditPayment = async (
         type: 'Paiement Crédit',
         branche: creditActuel.branche || 'Auto',
         numero_contrat: creditActuel.numero_contrat,
-        prime: montantPaiemen,
+        prime: montantPaiement,
       
         assure: assure,
         mode_paiement: modePaiement,
